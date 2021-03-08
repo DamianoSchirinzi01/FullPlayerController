@@ -8,12 +8,13 @@ namespace DS
     public class PlayerInput : MonoBehaviour
     {
         private PlayerController thisPlayer;
+        private AnimHook thisAnimHook;
 
         [HideInInspector] public Vector3 rawDirection;
         [HideInInspector] public float horizontal, vertical;
         [HideInInspector] public float mouseX, mouseY;
 
-        public bool isAiming, isCrouching, isJumping, isSprinting;
+        public bool isAiming, isCrouching, isJumping, isSprinting, isGrounded, isSliding, isClimbing;
         private bool canSprint = true;
 
         public float mouseSensitivity;
@@ -27,14 +28,17 @@ namespace DS
             Cursor.visible = false;
 
             thisPlayer = GetComponent<PlayerController>();
+            thisAnimHook = GetComponentInChildren<AnimHook>();
         }
 
         private void Update()
         {
             captureInput();
             toggleCameras();
-
+            checkSomeStates();
             cancelOutCurrentAction();
+
+            thisAnimHook.updateAnimatorStates(horizontal, vertical, thisPlayer.currentSpeed, isAiming, isJumping, isGrounded, isSliding, isClimbing);
         }
 
         private void captureInput()
@@ -46,11 +50,23 @@ namespace DS
             mouseY = Input.GetAxisRaw("Mouse Y") * (Time.fixedDeltaTime * mouseSensitivity);
 
             isAiming = Input.GetMouseButton(1);
-            if (canSprint) isSprinting = Input.GetButton("Sprinting");
+            if (canSprint && !isAiming) isSprinting = Input.GetButton("Sprinting");
             isJumping = Input.GetButtonDown("Jump");
             if (Input.GetKeyDown(KeyCode.C)) { toggleCrouch(); };
 
             rawDirection = new Vector3(horizontal, 0, vertical).normalized;
+        }
+
+        private void checkSomeStates()
+        {
+            isGrounded = thisPlayer.isGrounded;
+            isSliding = thisPlayer.isSliding;
+            isClimbing = thisPlayer.isClimbing;
+
+            if (thisPlayer.stopClimbing)
+            {
+                thisAnimHook.resetIK();
+            }
         }
 
         private void cancelOutCurrentAction()

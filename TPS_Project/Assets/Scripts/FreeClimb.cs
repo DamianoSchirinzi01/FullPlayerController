@@ -10,17 +10,20 @@ namespace DS
         public bool isClimbing;
         public bool inPosition;
         public bool isLerping;
+        public bool isMidTransition;
 
         public float tempHorizontalInput;
         public float tempVerticalInput;
         public float climbAngleLimit;
-        public float positionOffset;
+        public float positionOffset;      
         public float offsetFromWall;
         public float t;
         float delta;
         public float climbSpeed = 3;
         public float rotateSpeed = 5;
-        public float inAngleDistance = 1;
+
+        public float rayForwardTowardWall = 1;
+        public float rayTowardMoveDirection = 0.5f; //Increase for jump
 
         public Vector3 startPos;
         public Vector3 targetPos;
@@ -52,30 +55,32 @@ namespace DS
             climbHelper.name = "Climb helper";
             thisAnimHook.Init(this, climbHelper);
 
-            CheckForClimbableWall(); //TEMPORARILY CALLED HERE FOR TESTING
+            //CheckForClimbableWall(); //TEMPORARILY CALLED HERE FOR TESTING
         }
 
         private void Update()
         {
             delta = Time.deltaTime;
-            checkClimbingState(delta);
+            //checkClimbingState(delta);
         }
 
         //Cast ray to detect if climbable wall is infront of player
-        private void CheckForClimbableWall()
+        public bool CheckForClimbableWall()
         {
             Vector3 rayOrigin = transform.position;
-            rayOrigin.y += 1.4f;
+            rayOrigin.y += .8f;
             Vector3 rayDir = transform.forward;
             RaycastHit rayHit;
 
-            Debug.DrawRay(rayOrigin, rayDir * 5f, Color.green);
             if (Physics.Raycast(rayOrigin, rayDir, out rayHit, 5, whatIsClimbable))
             {
-                Debug.Log("Detected wall " + rayHit.transform.name);
                 climbHelper.position = getPositionWithOffset(rayOrigin, rayHit.point);
                 InitialiseClimb(rayHit);
+
+                return true;
             }
+
+            return false;
         }
 
         //Initialise climbing variables e.g. startPos, targetPos, helperRotation, isClimbing, 
@@ -88,11 +93,13 @@ namespace DS
             targetPos = hit.point + (hit.normal * offsetFromWall);
             t = 0;
             inPosition = false; //Still need to move to new targetPos
-            thisAnim.CrossFade("Climb_Hang", 2);
+            thisAnim.CrossFade("Climb_hang", 2);
         }
 
-        private void checkClimbingState(float delta)
+        public void checkClimbingState(float _delta)
         {
+            this.delta = _delta;
+            
             if (!inPosition)
             {
                 moveToStartPosition();
@@ -113,18 +120,31 @@ namespace DS
                 //Store the direction
                 Vector3 moveDir = (horizontal + vertical).normalized;
 
-                //Check if we can move
-                bool canMove = checkCanMove(moveDir);
-                if (!canMove || moveDir == Vector3.zero)
+                if (isMidTransition)
+                {
+                    if (moveDir == Vector3.zero) 
                     return;
+                }
+                else
+                {
+                    //Check if we can move
+                    bool canMove = checkCanMove(moveDir);
+                    if (!canMove || moveDir == Vector3.zero)
+                        return;
+                }
+
+                isMidTransition = !isMidTransition;               
 
                 t = 0;
-                startPos = transform.position;
-                targetPos = climbHelper.position;
-
-                thisAnimHook.createIKpositions(targetPos);
-
                 isLerping = true;
+                startPos = transform.position;
+                Vector3 newTargetPos = climbHelper.position - transform.position;
+                float distance = Vector3.Distance(climbHelper.position, startPos) / 2;
+                newTargetPos *= positionOffset;
+                newTargetPos += transform.position;
+                targetPos = (isMidTransition) ? newTargetPos : climbHelper.position;
+
+                thisAnimHook.createIKpositions(targetPos, moveDir, isMidTransition);
             }
             else //movingToPosition
             {
@@ -135,46 +155,61 @@ namespace DS
                     t = 1;
                     isLerping = false;
                 }
-                    Vector3 climbPos = Vector3.Lerp(startPos, targetPos, t);
-                    transform.position = climbPos;
-                    transform.rotation = Quaternion.Slerp(transform.rotation, climbHelper.rotation, delta * rotateSpeed);
-                
+
+                Vector3 climbPos = Vector3.Lerp(startPos, targetPos, t);
+                transform.position = climbPos;
+                transform.rotation = Quaternion.Slerp(transform.rotation, climbHelper.rotation, delta * rotateSpeed);
             }
         } 
 
         private bool checkCanMove(Vector3 moveDir) //Apply layer mask to these rayCasts!!
         {
             Vector3 rayOrigin = transform.position;
-            float distance1 = positionOffset;
+            float distance1 = rayTowardMoveDirection;
             Vector3 direction = moveDir;
             RaycastHit hit;
-            
-            Debug.DrawRay(rayOrigin, direction * distance1, Color.green);
-            if (Physics.Raycast(rayOrigin, direction, out hit, distance1))
+
+            //Raycast towards current move direction
+            DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance1), 0);
+            if (Physics.Raycast(rayOrigin, direction, out hit, distance1, whatIsClimbable))
             {
                 return false;
             }
 
             rayOrigin += moveDir * distance1;
             direction = climbHelper.forward;
-            float distance2 = inAngleDistance;
+            float distance2 = rayForwardTowardWall;
 
-            Debug.DrawRay(rayOrigin, direction * distance1, Color.cyan);
-            if(Physics.Raycast(rayOrigin, direction, out hit, distance1))
+            //Raycast towards wall
+            DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance2), 1);
+            if (Physics.Raycast(rayOrigin, direction, out hit, distance2, whatIsClimbable))
             {
                 climbHelper.position = getPositionWithOffset(rayOrigin, hit.point);
                 climbHelper.rotation = Quaternion.LookRotation(-hit.normal);
                 return true;
             }
 
+            rayOrigin = rayOrigin + (direction * distance2);
+            direction = -moveDir;
+
+            DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 1);
+            if (Physics.Raycast(rayOrigin, direction, out hit, rayForwardTowardWall))
+            {
+                climbHelper.position = getPositionWithOffset(rayOrigin, hit.point);
+                climbHelper.rotation = Quaternion.LookRotation(-hit.normal);
+                return true;
+            }
+
+            //return false; //When player reaches the ledge, climb up
+
             rayOrigin += direction * distance2;
             direction = -Vector3.up;
 
-            Debug.DrawRay(rayOrigin, direction * distance2,  Color.yellow);
-            if(Physics.Raycast(rayOrigin, direction, out hit, distance2))
+            DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 2);
+            if (Physics.Raycast(rayOrigin, direction, out hit, distance2, whatIsClimbable))
             {
                 //Check the angle between the helper and this hits normal
-                float angle = Vector3.Angle(climbHelper.up, hit.normal);
+                float angle = Vector3.Angle(-climbHelper.forward, hit.normal);
                 //If angle is below threshold
                 if(angle < climbAngleLimit)
                 {              
@@ -199,7 +234,7 @@ namespace DS
                 inPosition = true;
 
                 //Enable IK here!!!!!!!!!!
-                thisAnimHook.createIKpositions(targetPos);
+                thisAnimHook.createIKpositions(targetPos, Vector3.zero, false);
             }
 
             Vector3 newTargetPos = Vector3.Lerp(startPos, targetPos, t);

@@ -13,8 +13,14 @@ namespace DS
 
         public string isAiming = "isAiming";
         public string moveSpeed = "moveSpeed";
+        public string isJumping = "isJumping";
+        public string isSliding = "isSliding";
+        public string isGrounded = "isGrounded";
+        public string isClimbing = "isClimbing";
 
         public float lerpTime;
+        float delta;
+        public float climbLerpSpeed;
 
         [Header("Climbing")]
         public float rightHand_Weight;
@@ -27,14 +33,54 @@ namespace DS
         IKSnapshot ikBase;
         IKSnapshot currentIKsnapshot = new IKSnapshot();
         IKSnapshot nextIKsnapshot = new IKSnapshot();
+        IKGoals goals = new IKGoals();
 
         private Vector3 rightHand, leftHand, rightFoot, leftFoot;
+        private Vector3 previousMoveDir;
+
         private Transform climbHelper;
+
+        public bool isMirroringAnimation;
+        private bool isMovingLeft;
+
+        private LayerMask whatIsClimbable;
 
         // Start is called before the first frame update
         void Awake()
         {
             thisAnimator = GetComponent<Animator>();
+        }
+
+        //Will refactor this
+        public void updateAnimatorStates(float _inputX, float _inputY, float _speed, bool _isAiming, bool _isJumping, bool _isGrounded, bool _isSliding, bool _isClimbing)
+        {
+            float XinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputX), _inputX, lerpTime * Time.deltaTime);
+            float YinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputY), _inputY, lerpTime * Time.deltaTime);
+            float speedLerped = Mathf.Lerp(thisAnimator.GetFloat(moveSpeed), _speed, lerpTime * Time.deltaTime);
+
+            Debug.Log("Is calling locomotion");
+
+            thisAnimator.SetBool(isAiming, _isAiming); 
+            thisAnimator.SetBool(isJumping, _isJumping);
+            thisAnimator.SetBool(isGrounded, _isGrounded);
+            thisAnimator.SetBool(isSliding, _isSliding);
+            thisAnimator.SetBool(isClimbing, _isClimbing);
+
+            thisAnimator.SetFloat(moveSpeed, speedLerped);
+
+            thisAnimator.SetFloat(InputX, XinputLerped);
+            thisAnimator.SetFloat(InputY, YinputLerped);
+        }
+
+
+        #region Climbing     
+        
+        public void resetIK()
+        {
+            updateIKWeight(AvatarIKGoal.LeftFoot, 0);
+            updateIKWeight(AvatarIKGoal.RightFoot, 0);
+            updateIKWeight(AvatarIKGoal.LeftHand, 0);
+            updateIKWeight(AvatarIKGoal.RightHand, 0);
         }
 
         public void Init(FreeClimb freeClimb, Transform thisClimbHelper)
@@ -43,20 +89,100 @@ namespace DS
             climbHelper = thisClimbHelper;
         }      
 
-        public void createIKpositions(Vector3 originPoint)
+        public void createIKpositions(Vector3 originPoint, Vector3 moveDir, bool _isMidTransition)
         {
+            delta = Time.deltaTime;
+            HandleCimbAnimations(moveDir, _isMidTransition);
+
+            if (!_isMidTransition)
+            {
+                updateGoals(moveDir);
+                previousMoveDir = moveDir;
+            }
+            else
+            {
+                updateGoals(previousMoveDir);
+            }
+
             IKSnapshot thisIK = CreateIKsnapshot(originPoint);
             copySnapshot(ref currentIKsnapshot, thisIK);
 
-            updateIKposition(AvatarIKGoal.LeftFoot, currentIKsnapshot.leftFoot);
-            updateIKposition(AvatarIKGoal.RightFoot, currentIKsnapshot.rightFoot);
-            updateIKposition(AvatarIKGoal.LeftHand, currentIKsnapshot.leftHand);
-            updateIKposition(AvatarIKGoal.RightHand, currentIKsnapshot.rightHand);
+            setIKpositions(_isMidTransition, goals.leftFoot, currentIKsnapshot.leftFoot, AvatarIKGoal.LeftFoot);
+            setIKpositions(_isMidTransition, goals.rightFoot, currentIKsnapshot.rightFoot, AvatarIKGoal.RightFoot);
+            setIKpositions(_isMidTransition, goals.leftHand, currentIKsnapshot.leftHand, AvatarIKGoal.LeftHand);
+            setIKpositions(_isMidTransition, goals.rightHand, currentIKsnapshot.rightHand, AvatarIKGoal.RightHand);
 
             updateIKWeight(AvatarIKGoal.LeftFoot, 1);
             updateIKWeight(AvatarIKGoal.RightFoot, 1);
             updateIKWeight(AvatarIKGoal.LeftHand, 1);
             updateIKWeight(AvatarIKGoal.RightHand, 1);
+
+            Debug.Log("IK pos set, weight 1");
+        }
+
+        private void updateGoals(Vector3 moveDir) //ERROR WHERE IK IS NOT BEING SET AT START OF CLIMB. Maybe update goals twice on first move??
+        {
+            isMovingLeft = (moveDir.x <= 0);
+
+            if(moveDir.x != 0)
+            {
+                goals.leftHand = isMovingLeft;
+                goals.rightHand = !isMovingLeft;
+                goals.leftFoot = isMovingLeft;
+                goals.rightFoot = !isMovingLeft;
+            }
+            else
+            {
+                bool isEnabled = isMirroringAnimation;
+                if (moveDir.y < 0)
+                {
+                    isEnabled = !isEnabled;
+                }
+
+                goals.leftHand = isEnabled;
+                goals.rightHand = !isEnabled;
+                goals.leftFoot = isEnabled;
+                goals.rightFoot = !isEnabled;
+            }
+
+            Debug.Log("Alteranting arms");
+
+        }
+
+        private void HandleCimbAnimations(Vector3 moveDir , bool isMidTransition)
+        {
+            Debug.Log("Handling Climb Animations");
+            if (isMidTransition)
+            {
+                if(moveDir.y != 0)
+                {
+                    if(moveDir.x == 0)
+                    {
+                        isMirroringAnimation = !isMirroringAnimation;
+                        thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
+                    }
+                    else
+                    {
+                        if (moveDir.y < 0)
+                        {
+                            isMirroringAnimation = (moveDir.x > 0);
+                            thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
+
+                        }
+                        else
+                        {
+                            isMirroringAnimation = (moveDir.x < 0);
+                            thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
+                        }
+                    }                 
+
+                    //thisAnimator.CrossFade("Climb_up", 0.2f);
+                }
+            }
+            else
+            {
+                thisAnimator.CrossFade("Climb_hang", 0.2f);
+            }
         }
 
         public IKSnapshot CreateIKsnapshot(Vector3 originPoint)
@@ -64,33 +190,66 @@ namespace DS
             IKSnapshot thisIKsnapshot = new IKSnapshot();
 
             Vector3 _rightHand = convertLocalToWorldPos(ikBase.rightHand);
-            thisIKsnapshot.rightHand = getPositionActual(_rightHand);
+            thisIKsnapshot.rightHand = getPositionActual(_rightHand, AvatarIKGoal.RightHand);
 
             Vector3 _leftHand = convertLocalToWorldPos(ikBase.leftHand);
-            thisIKsnapshot.leftHand = getPositionActual(_leftHand);
+            thisIKsnapshot.leftHand = getPositionActual(_leftHand, AvatarIKGoal.LeftHand);
 
             Vector3 _rightFoot = convertLocalToWorldPos(ikBase.rightFoot);
-            thisIKsnapshot.rightFoot = getPositionActual(_rightFoot);
+            thisIKsnapshot.rightFoot = getPositionActual(_rightFoot, AvatarIKGoal.RightFoot);
 
             Vector3 _leftFoot = convertLocalToWorldPos(ikBase.leftFoot);
-            thisIKsnapshot.leftFoot = getPositionActual(_leftFoot);
+            thisIKsnapshot.leftFoot = getPositionActual(_leftFoot, AvatarIKGoal.LeftFoot);
 
             return thisIKsnapshot;
         }
 
-        private Vector3 getPositionActual(Vector3 origin)
+        private Vector3 getPositionActual(Vector3 origin, AvatarIKGoal goal)
         {
+            Debug.Log("Getting actual pos");
             Vector3 value = origin;
             Vector3 thisOrigin = origin;
             Vector3 direction = climbHelper.forward;
-            RaycastHit hit;
 
             thisOrigin += -(direction * 0.2f);
+            RaycastHit hit;
 
-            if(Physics.Raycast(thisOrigin, direction, out hit, 1.5f))
+            bool hasHit = false;
+            if(Physics.Raycast(thisOrigin, direction, out hit, 1.5f, whatIsClimbable))
             {
                 Vector3 _value = hit.point + (hit.normal * wallOffset);
                 value = _value;
+                hasHit = true;
+
+                if(goal == AvatarIKGoal.LeftFoot || goal == AvatarIKGoal.RightFoot)
+                {
+                    if(hit.point.y > transform.position.y - 0.1f)
+                    {
+                        hasHit = false;
+                    }
+                }               
+            }
+
+            if (!hasHit)
+            {
+                switch (goal)
+                {
+                    case AvatarIKGoal.LeftFoot:
+                        value = convertLocalToWorldPos(ikBase.leftFoot);
+                        break;
+                    case AvatarIKGoal.RightFoot:
+                        value = convertLocalToWorldPos(ikBase.rightFoot);
+                        break;
+                    case AvatarIKGoal.LeftHand:
+                        value = convertLocalToWorldPos(ikBase.leftHand);
+                        break;
+                    case AvatarIKGoal.RightHand:
+                        value = convertLocalToWorldPos(ikBase.rightHand);
+                        break;
+                    default:
+                        break;
+                }
+
             }
 
             return value;
@@ -113,18 +272,90 @@ namespace DS
             to.rightFoot = from.rightFoot;
             to.leftFoot = from.leftFoot;
         }
-        private void OnAnimatorIK()
+
+        private void setIKpositions(bool isMidTransition, bool isTrue, Vector3 position, AvatarIKGoal thisGoal)
         {
-            setIKpositions(AvatarIKGoal.LeftHand, leftHand, leftHand_Weight);
-            setIKpositions(AvatarIKGoal.RightHand, rightHand, rightHand_Weight);
-            setIKpositions(AvatarIKGoal.LeftFoot, leftFoot, leftFoot_Weight);
-            setIKpositions(AvatarIKGoal.RightFoot, rightFoot, rightFoot_Weight);
+            if (isMidTransition)
+            {
+                Vector3 newPos = getPositionActual(position, thisGoal);
+
+                if (isTrue)
+                {
+                    updateIKposition(thisGoal, newPos);
+                }
+                else
+                {
+                    if(thisGoal == AvatarIKGoal.LeftFoot || thisGoal == AvatarIKGoal.RightFoot)
+                    {
+                        if(position.y > transform.position.y - -0.5f)
+                        {
+                           // updateIKposition(thisGoal, position);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!isTrue)
+                {
+                    Vector3 newPos = getPositionActual(position, thisGoal);
+                    updateIKposition(thisGoal, newPos);
+                }
+            }
         }
 
-        private void setIKpositions(AvatarIKGoal goal, Vector3 targetPos, float weight)
+        private void OnAnimatorIK()
         {
-            thisAnimator.SetIKPositionWeight(goal, weight);
-            thisAnimator.SetIKPosition(goal, targetPos);
+            delta = Time.deltaTime;
+
+            setAnimatorIKpositions(AvatarIKGoal.LeftHand, leftHand, leftHand_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.RightHand, rightHand, rightHand_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.LeftFoot, leftFoot, leftFoot_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.RightFoot, rightFoot, rightFoot_Weight);
+        }
+
+        private void setAnimatorIKpositions(AvatarIKGoal goal, Vector3 targetPos, float weight)
+        {
+            IKstates thisIKstate = getIKstates(goal);
+            if(thisIKstate == null)
+            {
+                thisIKstate = new IKstates();
+                thisIKstate.goal = goal;
+                IKstatesList.Add(thisIKstate);
+            }
+
+            if(weight == 0)
+            {
+                thisIKstate.isSet = false;
+            }
+
+            if (!thisIKstate.isSet)
+            {
+                thisIKstate.position = getGoalToBodyBones(goal).position;
+                thisIKstate.isSet = true;
+            }
+
+            thisIKstate.positionWeight = weight;
+            thisIKstate.position = Vector3.Lerp(thisIKstate.position, targetPos, delta * climbLerpSpeed);
+
+            thisAnimator.SetIKPositionWeight(goal, thisIKstate.positionWeight);
+            thisAnimator.SetIKPosition(goal, thisIKstate.position);
+        }
+
+        private Transform getGoalToBodyBones(AvatarIKGoal goal)
+        {
+            switch (goal)
+            {
+                case AvatarIKGoal.LeftFoot:
+                    return thisAnimator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                case AvatarIKGoal.RightFoot:
+                    return thisAnimator.GetBoneTransform(HumanBodyBones.RightFoot);
+                case AvatarIKGoal.LeftHand:
+                    return thisAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+                default:
+                case AvatarIKGoal.RightHand:
+                    return thisAnimator.GetBoneTransform(HumanBodyBones.RightHand);
+            }
         }
 
         public void updateIKposition(AvatarIKGoal goal, Vector3 targetPos)
@@ -168,18 +399,41 @@ namespace DS
                     break;
             }
         }
-        public void updateLocomotion(float _inputX, float _inputY, float _speed, bool _isAiming)
+
+        List<IKstates> IKstatesList = new List<IKstates>();
+
+        private IKstates getIKstates(AvatarIKGoal goal)
         {
-            float XinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputX), _inputX, lerpTime * Time.deltaTime);
-            float YinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputY), _inputY, lerpTime * Time.deltaTime);
-            float speedLerped = Mathf.Lerp(thisAnimator.GetFloat(moveSpeed), _speed, lerpTime * Time.deltaTime);
+            IKstates thisIKstates = null;
 
-            thisAnimator.SetBool(isAiming, _isAiming);
-            thisAnimator.SetFloat(moveSpeed, speedLerped);
+            foreach(IKstates current in IKstatesList)
+            {
+                if(current.goal == goal)
+                {
+                    thisIKstates = current;
+                    break;
+                }
+            }
 
-            thisAnimator.SetFloat(InputX, XinputLerped);
-            thisAnimator.SetFloat(InputY, YinputLerped);
+            return thisIKstates;
         }
+
+        class IKstates
+        {
+            public AvatarIKGoal goal;
+            public Vector3 position;
+            public float positionWeight;
+            public bool isSet = false;
+        }       
     }
+
+    public class IKGoals
+    {
+        public bool rightHand;
+        public bool leftHand;
+        public bool rightFoot;
+        public bool leftFoot;
+    }
+    #endregion
 }
 

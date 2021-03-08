@@ -5,13 +5,12 @@ using UnityEngine;
 namespace DS
 {    public class PlayerController : MonoBehaviour
     {
-        [Header("References")]
-        private CharacterController thisCC;
+        [Header("References")] 
         private PlayerInput input;
+        private FreeClimb thisFreeClimb;
+        private CharacterController thisCC;
         public Transform camera;
         public Transform orientation;
-
-        public float testVelocity;
 
         [Header("Locomotion Values")]
         public float slopeLimit;
@@ -20,6 +19,7 @@ namespace DS
         public float standardSpeed;
         public float crouchSpeed;
         public float acceleration;
+        public float decelerationMultiplier;
         public float currentSpeed;
         private float lerpTimeElapsed = 3f;
         private Vector3 moveDirection;
@@ -35,8 +35,10 @@ namespace DS
         private Vector3 playerScale;
 
         [Header("Jumping Values")]
+        public bool justJumped;
         public Transform fallDirection;
-        public float jumpCooldown;
+        public float jumpCooldown = 1.5f;
+        private float jumpCoolDownReset;
         public float jumpForce;
 
         [Header("Ground & Slope Check Values")]
@@ -50,38 +52,60 @@ namespace DS
         public float currentSlideVelocity;
         public float slopeRayDistance;
         RaycastHit slopeHit;
-        private bool isSliding;
+        public bool isSliding;
         private bool isOnASlope;
         public bool currentSlopeIsTooSteep;
         public bool isGrounded;
 
+        public bool isClimbing;
+        public bool stopClimbing;
 
         // Start is called before the first frame update
         void Awake()
         {
             input = GetComponent<PlayerInput>();
+            thisFreeClimb = GetComponent<FreeClimb>();
             thisCC = GetComponent<CharacterController>();
         }
 
-        private void Start()
+        void Start()
         {
             playerScale = transform.localScale;
+            jumpCoolDownReset = jumpCooldown;
         }
 
-        private void Update()
+        void Update()
         {
+            if (isClimbing)
+            {
+                thisFreeClimb.checkClimbingState(Time.deltaTime);
+                return;
+            }
+
             isGrounded = checkIsGrounded();
+
+            if (!isGrounded)
+            {
+                if (thisFreeClimb.CheckForClimbableWall())
+                {
+                    enableClimbing();
+                }
+            }
+
             Jump();
+            resetJump();
             setSpeed();
         }
 
         private void FixedUpdate()
         {
-            MovePlayer();
-        }
+            if (isClimbing)
+            {
+                return;
+            }
 
-        private void LateUpdate()
-        {
+            MovePlayer();
+
             if (input.isAiming)
             {
                 AimingLookRotation();
@@ -116,6 +140,7 @@ namespace DS
 
         private void Slide()
         {
+            isSliding = true;
             thisCC.SimpleMove(-fallDirection.up * (currentSlideVelocity * Time.fixedDeltaTime));
             thisCC.Move(Vector3.down * thisCC.height / 2 * slopeGravityMultiplier * Time.deltaTime); //Applies gravity downwards whe on a ramp
             moveDirection += -fallDirection.up;
@@ -141,7 +166,7 @@ namespace DS
             }
             else if (input.rawDirection.magnitude == 0)
             {
-                currentSpeed = HelperFunctions.smoothLerp(currentSpeed, currentSpeed, 0, acceleration);
+                currentSpeed = HelperFunctions.smoothLerp(currentSpeed, currentSpeed, 0, (acceleration * decelerationMultiplier));
                 if (currentSpeed <= 0.2f) { currentSpeed = 0f; }
             }
         }
@@ -186,14 +211,16 @@ namespace DS
         #region Crouching
         public void StartCrouch()
         {
-            transform.localScale = crouchScale;
-            transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
+            Debug.Log("Crouch Started");
+            //transform.localScale = crouchScale;
+            //transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
         }
 
         public void StopCrouch()
         {
-            transform.localScale = playerScale;
-            transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
+            Debug.Log("Crouch Stopped");
+            //transform.localScale = playerScale;
+            //transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
         }
 
         #endregion
@@ -201,10 +228,29 @@ namespace DS
         #region Jumping
         private void Jump()
         {
-            if (input.isJumping && isGrounded && !currentSlopeIsTooSteep)
+            if (!justJumped)
             {
-                velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+                if (input.isJumping && isGrounded && !currentSlopeIsTooSteep)
+                {
+                    justJumped = true;
+                    velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+                }
+            }               
+        }
+
+        private void resetJump()
+        {
+            if (justJumped)
+            {            
+                jumpCooldown -= Time.deltaTime;
+
+                if(jumpCooldown <= 0)
+                {
+                    justJumped = false;
+                    jumpCooldown = jumpCoolDownReset;
+                }
             }
+            
         }
 
         //Add cooldown after jump
@@ -303,6 +349,7 @@ namespace DS
             else
             {
                 fallDirection.rotation = Quaternion.FromToRotation(Vector3.up, slopeHit.normal);
+                isSliding = false;
             }
         }
 
@@ -326,6 +373,18 @@ namespace DS
             transform.rotation = Quaternion.Slerp(transform.rotation, lookAtDir, slideTurnSpeed * Time.deltaTime);
 
             return newRot;
+        }
+
+        private void enableClimbing()
+        {
+            isClimbing = true;
+            
+            thisCC.enabled = false;
+        }
+
+        private void disableClimbing()
+        {
+            thisFreeClimb.enabled = false;
         }
         #endregion
     }

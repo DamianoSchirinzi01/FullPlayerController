@@ -28,7 +28,7 @@ public class PlayerInputTest : MonoBehaviour
         MyInput();
         setCamera(aiming);
 
-        thisAnimHook.updateLocomotion(moveX, moveY, thisPlayerMovement.currentVelocity, aiming);
+        //thisAnimHook.updateLocomotion(moveX, moveY, thisPlayerMovement.currentVelocity, aiming);
     }
 
     private void MyInput()
