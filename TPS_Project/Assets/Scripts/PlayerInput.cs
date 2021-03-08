@@ -19,6 +19,7 @@ namespace DS
 
         public float mouseSensitivity;
 
+        public CinemachineVirtualCamera climbCam;
         public CinemachineVirtualCamera aimCam;
         public CinemachineFreeLook freeCam;
 
@@ -49,7 +50,7 @@ namespace DS
             mouseX = Input.GetAxisRaw("Mouse X") * (Time.fixedDeltaTime * mouseSensitivity);
             mouseY = Input.GetAxisRaw("Mouse Y") * (Time.fixedDeltaTime * mouseSensitivity);
 
-            isAiming = Input.GetMouseButton(1);
+            if(!isClimbing) isAiming = Input.GetMouseButton(1);
             if (canSprint && !isAiming) isSprinting = Input.GetButton("Sprinting");
             isJumping = Input.GetButtonDown("Jump");
             if (Input.GetKeyDown(KeyCode.C)) { toggleCrouch(); };
@@ -124,10 +125,20 @@ namespace DS
             {
                 aimCam.m_Priority = 25;
                 freeCam.m_Priority = 8;
+                climbCam.m_Priority = 8;
             }
-            else
+
+            if (!isAiming)
             {
                 freeCam.m_Priority = 25;
+                aimCam.m_Priority = 8;
+                climbCam.m_Priority = 8;
+            }
+
+            if(!isAiming && isClimbing)
+            {
+                climbCam.m_Priority = 25;
+                freeCam.m_Priority = 8;
                 aimCam.m_Priority = 8;
             }
         }

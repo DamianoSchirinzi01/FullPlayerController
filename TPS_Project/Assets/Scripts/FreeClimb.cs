@@ -54,14 +54,11 @@ namespace DS
             climbHelper = new GameObject().transform;
             climbHelper.name = "Climb helper";
             thisAnimHook.Init(this, climbHelper);
-
-            //CheckForClimbableWall(); //TEMPORARILY CALLED HERE FOR TESTING
         }
 
         private void Update()
         {
             delta = Time.deltaTime;
-            //checkClimbingState(delta);
         }
 
         //Cast ray to detect if climbable wall is infront of player
@@ -72,7 +69,7 @@ namespace DS
             Vector3 rayDir = transform.forward;
             RaycastHit rayHit;
 
-            if (Physics.Raycast(rayOrigin, rayDir, out rayHit, 5, whatIsClimbable))
+            if (Physics.Raycast(rayOrigin, rayDir, out rayHit, 1, whatIsClimbable))
             {
                 climbHelper.position = getPositionWithOffset(rayOrigin, rayHit.point);
                 InitialiseClimb(rayHit);

@@ -78,19 +78,33 @@ namespace DS
         {
             if (isClimbing)
             {
+                if (input.isJumping)
+                {
+                    stopClimbing = true;
+                    disableClimbing();
+                }
+
                 thisFreeClimb.checkClimbingState(Time.deltaTime);
                 return;
             }
 
             isGrounded = checkIsGrounded();
 
-            if (!isGrounded)
+            if (!isClimbing)
             {
-                if (thisFreeClimb.CheckForClimbableWall())
+                if (!isGrounded && !stopClimbing)
                 {
-                    enableClimbing();
+                    if (thisFreeClimb.CheckForClimbableWall())
+                    {
+                        enableClimbing();
+                    }
+                }
+                else if(isGrounded && stopClimbing)
+                {
+                    stopClimbing = false;
                 }
             }
+           
 
             Jump();
             resetJump();
@@ -384,7 +398,9 @@ namespace DS
 
         private void disableClimbing()
         {
-            thisFreeClimb.enabled = false;
+            isClimbing = false;
+
+            thisCC.enabled = true;
         }
         #endregion
     }

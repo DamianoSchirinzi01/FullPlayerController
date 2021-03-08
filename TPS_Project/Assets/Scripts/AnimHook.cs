@@ -43,7 +43,7 @@ namespace DS
         public bool isMirroringAnimation;
         private bool isMovingLeft;
 
-        private LayerMask whatIsClimbable;
+        public LayerMask whatIsClimbable;
 
         // Start is called before the first frame update
         void Awake()
@@ -116,8 +116,6 @@ namespace DS
             updateIKWeight(AvatarIKGoal.RightFoot, 1);
             updateIKWeight(AvatarIKGoal.LeftHand, 1);
             updateIKWeight(AvatarIKGoal.RightHand, 1);
-
-            Debug.Log("IK pos set, weight 1");
         }
 
         private void updateGoals(Vector3 moveDir) //ERROR WHERE IK IS NOT BEING SET AT START OF CLIMB. Maybe update goals twice on first move??
@@ -144,9 +142,6 @@ namespace DS
                 goals.leftFoot = isEnabled;
                 goals.rightFoot = !isEnabled;
             }
-
-            Debug.Log("Alteranting arms");
-
         }
 
         private void HandleCimbAnimations(Vector3 moveDir , bool isMidTransition)
@@ -176,7 +171,7 @@ namespace DS
                         }
                     }                 
 
-                    //thisAnimator.CrossFade("Climb_up", 0.2f);
+                    thisAnimator.CrossFade("Climb_up", 0.2f);
                 }
             }
             else
@@ -206,7 +201,6 @@ namespace DS
 
         private Vector3 getPositionActual(Vector3 origin, AvatarIKGoal goal)
         {
-            Debug.Log("Getting actual pos");
             Vector3 value = origin;
             Vector3 thisOrigin = origin;
             Vector3 direction = climbHelper.forward;
