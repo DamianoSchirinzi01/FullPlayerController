@@ -22,6 +22,7 @@ namespace DS
         public float decelerationMultiplier;
         public float currentSpeed;
         private float lerpTimeElapsed = 3f;
+        public bool canMove { get; set; }
         private Vector3 moveDirection;
         Vector3 velocity;
 
@@ -57,6 +58,7 @@ namespace DS
         public bool currentSlopeIsTooSteep;
         public bool isGrounded;
 
+        [Header("Climbing")]
         public bool isClimbing;
         public bool stopClimbing;
 
@@ -70,18 +72,22 @@ namespace DS
 
         void Start()
         {
+            canMove = true;
+
             playerScale = transform.localScale;
             jumpCoolDownReset = jumpCooldown;
         }
 
         void Update()
         {
+            if (!canMove)
+                return;
+
             if (isClimbing)
             {
                 if (input.isJumping)
                 {
-                    stopClimbing = true;
-                    disableClimbing();
+                    thisFreeClimb.cancelClimb(true);
                 }
 
                 thisFreeClimb.checkClimbingState(Time.deltaTime);
@@ -103,8 +109,7 @@ namespace DS
                 {
                     stopClimbing = false;
                 }
-            }
-           
+            }           
 
             Jump();
             resetJump();
@@ -113,10 +118,12 @@ namespace DS
 
         private void FixedUpdate()
         {
-            if (isClimbing)
-            {
+            if (!canMove)
                 return;
-            }
+
+            if (isClimbing)            
+                return;
+            
 
             MovePlayer();
 
@@ -157,7 +164,7 @@ namespace DS
             isSliding = true;
             thisCC.SimpleMove(-fallDirection.up * (currentSlideVelocity * Time.fixedDeltaTime));
             thisCC.Move(Vector3.down * thisCC.height / 2 * slopeGravityMultiplier * Time.deltaTime); //Applies gravity downwards whe on a ramp
-            moveDirection += -fallDirection.up;
+            moveDirection += -fallDirection.up;           
         }
 
         private void setSpeed()
@@ -242,7 +249,7 @@ namespace DS
         #region Jumping
         private void Jump()
         {
-            if (!justJumped)
+            if (!justJumped && !isClimbing)
             {
                 if (input.isJumping && isGrounded && !currentSlopeIsTooSteep)
                 {
@@ -299,7 +306,7 @@ namespace DS
                 currentSlopeIsTooSteep = false;
                 isOnASlope = false;
 
-                Debug.Log("Flat ground");
+                //Debug.Log("Flat ground");
                 return false;
 
             }
@@ -307,14 +314,14 @@ namespace DS
             {
                 currentSlopeIsTooSteep = false;
                 isOnASlope = true;
-                Debug.Log("On slope but not steep");
+                //Debug.Log("On slope but not steep");
                 return false;
             }
             else
             {
                 currentSlopeIsTooSteep = true;
                 isOnASlope = true;
-                Debug.Log("On steep slope");
+                //Debug.Log("On steep slope");
                 return true;
             }
         }
@@ -389,17 +396,18 @@ namespace DS
             return newRot;
         }
 
-        private void enableClimbing()
+        public void enableClimbing()
         {
             isClimbing = true;
             
             thisCC.enabled = false;
         }
 
-        private void disableClimbing()
+        public void disableClimbing()
         {
             isClimbing = false;
 
+            stopClimbing = true;
             thisCC.enabled = true;
         }
         #endregion

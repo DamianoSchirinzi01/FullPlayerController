@@ -7,16 +7,18 @@ namespace DS
     public class AnimHook : MonoBehaviour
     {
         private Animator thisAnimator;
+        private FreeClimb thisFreeClimb;
 
-        public string InputX = "InputX";
-        public string InputY = "InputY";
+        private string InputX = "InputX";
+        private string InputY = "InputY";
 
-        public string isAiming = "isAiming";
-        public string moveSpeed = "moveSpeed";
-        public string isJumping = "isJumping";
-        public string isSliding = "isSliding";
-        public string isGrounded = "isGrounded";
-        public string isClimbing = "isClimbing";
+        private string isAiming = "isAiming";
+        private string moveSpeed = "moveSpeed";
+        private string isJumping = "isJumping";
+        private string isSliding = "isSliding";
+        private string isGrounded = "isGrounded";
+        private string isClimbing = "isClimbing";
+        private string isClimbingLedge = "isClimbingLedge";
 
         public float lerpTime;
         float delta;
@@ -40,6 +42,7 @@ namespace DS
 
         private Transform climbHelper;
 
+        public bool goalsHaveUpdated;
         public bool isMirroringAnimation;
         private bool isMovingLeft;
 
@@ -49,6 +52,7 @@ namespace DS
         void Awake()
         {
             thisAnimator = GetComponent<Animator>();
+            thisFreeClimb = GetComponent<FreeClimb>();
         }
 
         //Will refactor this
@@ -57,8 +61,6 @@ namespace DS
             float XinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputX), _inputX, lerpTime * Time.deltaTime);
             float YinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputY), _inputY, lerpTime * Time.deltaTime);
             float speedLerped = Mathf.Lerp(thisAnimator.GetFloat(moveSpeed), _speed, lerpTime * Time.deltaTime);
-
-            Debug.Log("Is calling locomotion");
 
             thisAnimator.SetBool(isAiming, _isAiming); 
             thisAnimator.SetBool(isJumping, _isJumping);
@@ -74,7 +76,17 @@ namespace DS
 
 
         #region Climbing     
-        
+        public void beginLedgeClimb()
+        {
+            thisAnimator.SetBool(isClimbingLedge, true);
+            resetIK();
+        }
+        public void callFinishLedgeClimb()
+        {
+            thisFreeClimb.finishLedgeClimb();
+            thisAnimator.SetBool(isClimbingLedge, false);
+        }
+
         public void resetIK()
         {
             updateIKWeight(AvatarIKGoal.LeftFoot, 0);
@@ -85,6 +97,7 @@ namespace DS
 
         public void Init(FreeClimb freeClimb, Transform thisClimbHelper)
         {
+            thisFreeClimb = freeClimb;
             ikBase = freeClimb.baseIKsnapshot;
             climbHelper = thisClimbHelper;
         }      
@@ -131,22 +144,32 @@ namespace DS
             }
             else
             {
-                bool isEnabled = isMirroringAnimation;
+                bool isEnabled = !isMirroringAnimation;
                 if (moveDir.y < 0)
                 {
                     isEnabled = !isEnabled;
                 }
+                if (!goalsHaveUpdated)
+                {
+                    goals.leftHand = isEnabled;
+                    goals.rightHand = isEnabled;
+                    goals.leftFoot = isEnabled;
+                    goals.rightFoot = isEnabled;
 
-                goals.leftHand = isEnabled;
-                goals.rightHand = !isEnabled;
-                goals.leftFoot = isEnabled;
-                goals.rightFoot = !isEnabled;
+                    goalsHaveUpdated = true;
+                }
+                else
+                {
+                    goals.leftHand = isEnabled;
+                    goals.rightHand = !isEnabled;
+                    goals.leftFoot = isEnabled;
+                    goals.rightFoot = !isEnabled;
+                }               
             }
         }
 
         private void HandleCimbAnimations(Vector3 moveDir , bool isMidTransition)
         {
-            Debug.Log("Handling Climb Animations");
             if (isMidTransition)
             {
                 if(moveDir.y != 0)
@@ -154,30 +177,21 @@ namespace DS
                     if(moveDir.x == 0)
                     {
                         isMirroringAnimation = !isMirroringAnimation;
-                        thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
                     }
                     else
                     {
                         if (moveDir.y < 0)
                         {
                             isMirroringAnimation = (moveDir.x > 0);
-                            thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
 
                         }
                         else
                         {
                             isMirroringAnimation = (moveDir.x < 0);
-                            thisAnimator.SetBool("isMirroringAnimation", isMirroringAnimation);
                         }
                     }                 
-
-                    thisAnimator.CrossFade("Climb_up", 0.2f);
                 }
-            }
-            else
-            {
-                thisAnimator.CrossFade("Climb_hang", 0.2f);
-            }
+            }           
         }
 
         public IKSnapshot CreateIKsnapshot(Vector3 originPoint)

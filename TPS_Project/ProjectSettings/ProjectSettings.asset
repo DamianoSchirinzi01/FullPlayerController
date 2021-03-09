@@ -583,7 +583,13 @@ PlayerSettings:
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    1: GRASSFLOW_SRP
+    4: GRASSFLOW_SRP
+    7: GRASSFLOW_SRP
+    13: GRASSFLOW_SRP
+    19: GRASSFLOW_SRP
+    21: GRASSFLOW_SRP
   platformArchitecture: {}
   scriptingBackend:
     Standalone: 0

@@ -5,15 +5,22 @@ using UnityEngine;
 namespace DS
 {    public class FreeClimb : MonoBehaviour
     {
-        Animator thisAnim; //TEMPORARY
+        PlayerController thisController;
+        AnimHook thisAnimHook;
+        PlayerInput input;
+        public float test = 2f;
+
         //Variables
         public bool isClimbing;
         public bool inPosition;
         public bool isLerping;
         public bool isMidTransition;
 
-        public float tempHorizontalInput;
-        public float tempVerticalInput;
+        public bool canClimbLedge;
+        public bool isTouchingWall;
+        public bool isTouchingWallAbove;
+        public bool ledgeDetected;
+       
         public float climbAngleLimit;
         public float positionOffset;      
         public float offsetFromWall;
@@ -25,6 +32,13 @@ namespace DS
         public float rayForwardTowardWall = 1;
         public float rayTowardMoveDirection = 0.5f; //Increase for jump
 
+        public float ledgeClimbXoffset1 = 0f;
+        public float ledgeClimbYoffset2 = 0f;
+        public Vector3 holdPosition;
+        public Vector3 moveToOffset;
+        public Transform moveToPoint;
+
+        public Vector3 yOffset;
         public Vector3 startPos;
         public Vector3 targetPos;
 
@@ -34,14 +48,15 @@ namespace DS
         private Transform climbHelper;
 
         public IKSnapshot baseIKsnapshot;
-        public AnimHook thisAnimHook;
 
         public LayerMask whatIsClimbable;
+        public LayerMask whatIsGround;
 
         private void Awake()
         {
-            thisAnim = GetComponentInChildren<Animator>();
             thisAnimHook = GetComponentInChildren<AnimHook>();
+            thisController = GetComponent<PlayerController>();
+            input = GetComponent<PlayerInput>();
         }
 
         void Start()
@@ -59,13 +74,19 @@ namespace DS
         private void Update()
         {
             delta = Time.deltaTime;
+
+            if (isClimbing)
+            {
+                checkForLedge();
+                checkLedgeClimb();
+            }
         }
 
         //Cast ray to detect if climbable wall is infront of player
         public bool CheckForClimbableWall()
         {
             Vector3 rayOrigin = transform.position;
-            rayOrigin.y += .8f;
+            rayOrigin.y += .02f;
             Vector3 rayDir = transform.forward;
             RaycastHit rayHit;
 
@@ -90,7 +111,6 @@ namespace DS
             targetPos = hit.point + (hit.normal * offsetFromWall);
             t = 0;
             inPosition = false; //Still need to move to new targetPos
-            thisAnim.CrossFade("Climb_hang", 2);
         }
 
         public void checkClimbingState(float _delta)
@@ -106,14 +126,12 @@ namespace DS
             //When climbing has started, player will have two states
             if (!isLerping) //finding position
             {
-                //Get input
-                tempHorizontalInput = Input.GetAxis("Horizontal");
-                tempVerticalInput = Input.GetAxis("Vertical");
-                float absoluteInput = Mathf.Abs(tempHorizontalInput) + Mathf.Abs(tempVerticalInput);
+                if (!thisController.canMove)
+                    return;
 
                 //Get direction relative to the climb helper
-                Vector3 horizontal = climbHelper.right * tempHorizontalInput;
-                Vector3 vertical = climbHelper.up * tempVerticalInput;
+                Vector3 horizontal = climbHelper.right * input.horizontal;
+                Vector3 vertical = climbHelper.up * input.vertical;
                 //Store the direction
                 Vector3 moveDir = (horizontal + vertical).normalized;
 
@@ -156,8 +174,12 @@ namespace DS
                 Vector3 climbPos = Vector3.Lerp(startPos, targetPos, t);
                 transform.position = climbPos;
                 transform.rotation = Quaternion.Slerp(transform.rotation, climbHelper.rotation, delta * rotateSpeed);
+
+                lookForGround();
             }
-        } 
+        }
+
+      
 
         private bool checkCanMove(Vector3 moveDir) //Apply layer mask to these rayCasts!!
         {
@@ -167,18 +189,19 @@ namespace DS
             RaycastHit hit;
 
             //Raycast towards current move direction
-            DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance1), 0);
+           //DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance1), 0);
             if (Physics.Raycast(rayOrigin, direction, out hit, distance1, whatIsClimbable))
             {
+                Debug.Log("false");
                 return false;
             }
-
+                       
             rayOrigin += moveDir * distance1;
             direction = climbHelper.forward;
             float distance2 = rayForwardTowardWall;
 
             //Raycast towards wall
-            DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance2), 1);
+           // DebugLine.instance.setLine(rayOrigin, rayOrigin + (direction * distance2), 1);
             if (Physics.Raycast(rayOrigin, direction, out hit, distance2, whatIsClimbable))
             {
                 climbHelper.position = getPositionWithOffset(rayOrigin, hit.point);
@@ -189,7 +212,7 @@ namespace DS
             rayOrigin = rayOrigin + (direction * distance2);
             direction = -moveDir;
 
-            DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 1);
+            //DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 2);
             if (Physics.Raycast(rayOrigin, direction, out hit, rayForwardTowardWall))
             {
                 climbHelper.position = getPositionWithOffset(rayOrigin, hit.point);
@@ -202,7 +225,7 @@ namespace DS
             rayOrigin += direction * distance2;
             direction = -Vector3.up;
 
-            DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 2);
+            //DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 3);
             if (Physics.Raycast(rayOrigin, direction, out hit, distance2, whatIsClimbable))
             {
                 //Check the angle between the helper and this hits normal
@@ -223,12 +246,13 @@ namespace DS
         //Starts the climb
         private void moveToStartPosition()
         {
-            t += delta;
+            t += delta * 10;
 
             if(t > 1)
             {
                 t = 1f;
                 inPosition = true;
+                stopInput();
 
                 //Enable IK here!!!!!!!!!!
                 thisAnimHook.createIKpositions(targetPos, Vector3.zero, false);
@@ -248,7 +272,109 @@ namespace DS
 
             return target + offset;
         }
+
+        #region LedgeClimbing
+        public void finishLedgeClimb()
+        {
+            canClimbLedge = false;
+            transform.position = moveToPoint.position;
+            thisController.canMove = true;
+            ledgeDetected = false;
+
+            Destroy(moveToPoint.gameObject);
+            moveToPoint = null;
+            cancelClimb(false);
+        }
+
+        private void checkLedgeClimb()
+        {
+            if (ledgeDetected && !canClimbLedge)
+            {
+                canClimbLedge = true;
+
+                holdPosition = transform.position;
+
+                moveToPoint = new GameObject().transform;
+                moveToPoint.name = "!LEDGE MOVE TO POINT!";
+                moveToPoint.position = transform.position + moveToOffset;
+
+                thisController.canMove = false;
+
+                thisAnimHook.beginLedgeClimb();
+            }
+
+            if (canClimbLedge)
+            {
+                transform.position = holdPosition;
+            }
+        }
+
+        private void checkForLedge()
+        {
+            Vector3 originPoint = transform.position;
+            Vector3 originPoint2 = transform.position + yOffset;
+            float rayDistance = 5f;
+            Vector3 direction = transform.forward;
+
+            DebugLine.instance.setLine(originPoint, originPoint + (direction * rayDistance), 0);
+            DebugLine.instance.setLine(originPoint2, originPoint2 + (direction * rayDistance), 1);
+
+            isTouchingWall = Physics.Raycast(originPoint, direction * rayDistance, whatIsClimbable);
+            isTouchingWallAbove = Physics.Raycast(originPoint + yOffset, direction * rayDistance, whatIsClimbable);
+
+            if (isTouchingWall && !isTouchingWallAbove && !ledgeDetected)
+            {
+                ledgeDetected = true; //Found ledge
+            }
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawWireSphere(transform.position + moveToOffset, .5f);
+        }
+        #endregion
+
+        #region dismounting wall   
+        private void lookForGround()
+        {
+            Vector3 rayOrigin = transform.position;
+            Vector3 direction = -Vector3.up;
+            RaycastHit hit;
+
+            //DebugLine.instance.setLine(rayOrigin, rayOrigin + direction, 3);
+            if(Physics.Raycast(rayOrigin, direction, out hit, 1.2f, whatIsGround))
+            {
+                cancelClimb(false);
+            }
+        }
+
+        public void cancelClimb(bool _pushBack)
+        {
+            stopInput();
+
+            if (_pushBack)
+            {
+                Vector3 dir = ((-transform.forward * 3) + (Vector3.up / 2));
+                transform.Translate(dir * 150f * Time.deltaTime, Space.World);
+            }
+
+            thisAnimHook.goalsHaveUpdated = false;
+            isClimbing = false;
+
+            thisController.disableClimbing();
+        }
+
+        private void stopInput()
+        {
+            input.horizontal = 0;
+            input.vertical = 0;
+        }
+
+        #endregion
+
+
     }
+
 
     [System.Serializable]
     public class IKSnapshot

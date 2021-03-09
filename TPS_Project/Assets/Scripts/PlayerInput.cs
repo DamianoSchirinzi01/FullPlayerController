@@ -90,6 +90,11 @@ namespace DS
 
                     toggleCrouch();
                 }
+
+                if (isAiming)
+                {
+                    isSprinting = false;
+                }
             }
 
             if (isJumping)

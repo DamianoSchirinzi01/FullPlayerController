@@ -670,7 +670,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7786561, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -781,12 +781,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de660b49c3474ed49aea5e05b51c3559, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  test: 2
   isClimbing: 1
   inPosition: 1
   isLerping: 0
   isMidTransition: 0
-  tempHorizontalInput: 0
-  tempVerticalInput: 0
+  canClimbLedge: 0
+  isTouchingWall: 0
+  isTouchingWallAbove: 0
+  ledgeDetected: 0
   climbAngleLimit: 40
   positionOffset: 0.7
   offsetFromWall: 0.45
@@ -795,6 +798,12 @@ MonoBehaviour:
   rotateSpeed: 5
   rayForwardTowardWall: 1
   rayTowardMoveDirection: 0.5
+  ledgeClimbXoffset1: 0
+  ledgeClimbYoffset2: 0
+  holdPosition: {x: 0, y: 0, z: 0}
+  moveToOffset: {x: 0, y: 0, z: 0}
+  moveToPoint: {fileID: 0}
+  yOffset: {x: 0, y: 0, z: 0}
   startPos: {x: -27.949999, y: 7.1021066, z: -12.709856}
   targetPos: {x: -27.949999, y: 7.6021066, z: -12.709856}
   startRot: {x: 0, y: 0, z: 0, w: 0}
@@ -804,10 +813,12 @@ MonoBehaviour:
     leftHand: {x: -0.25, y: 0.6, z: 0.3}
     rightFoot: {x: 0.2, y: -0.65, z: 0.3}
     leftFoot: {x: -0.25, y: -0.6, z: 0.3}
-  thisAnimHook: {fileID: 1641330648995880301}
   whatIsClimbable:
     serializedVersion: 2
     m_Bits: 1024
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &88714755
 GameObject:
   m_ObjectHideFlags: 0
@@ -2109,7 +2120,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2125,7 +2136,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 514016801}
-  m_LocalRotation: {x: 0.0033823, y: 0.9950523, z: 0.03643632, w: -0.092368424}
+  m_LocalRotation: {x: -0.024699539, y: -0.73734146, z: -0.026999595, w: 0.67452836}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -3090,7 +3101,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Damping: {x: 0, y: 0, z: 0}
-  ShoulderOffset: {x: 0.86, y: -3.14, z: -2.92}
+  ShoulderOffset: {x: 0.86, y: -1.98, z: -2.92}
   VerticalArmLength: 1.84
   CameraSide: 1
   CameraDistance: 2
@@ -4763,8 +4774,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1087175437}
-  m_LocalRotation: {x: -0.0033823075, y: -0.9950523, z: -0.036436398, w: 0.092368424}
-  m_LocalPosition: {x: -13.761688, y: 6.6000004, z: 4.36311}
+  m_LocalRotation: {x: 0.024699593, y: 0.73734146, z: 0.026999652, w: -0.67452836}
+  m_LocalPosition: {x: -24.267778, y: 9.45, z: -17.590387}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -5558,7 +5569,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7745098, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -5982,7 +5993,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1432867867
 Transform:
   m_ObjectHideFlags: 0
@@ -6697,7 +6708,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1591402179}
   m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: -14.59, y: 5.4, z: -0.06}
+  m_LocalPosition: {x: -28.75, y: 8.25, z: -17.99}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1816877910}
@@ -6738,12 +6749,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de660b49c3474ed49aea5e05b51c3559, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isClimbing: 1
+  test: 2
+  isClimbing: 0
   inPosition: 1
   isLerping: 0
   isMidTransition: 0
-  tempHorizontalInput: 0
-  tempVerticalInput: 0
+  canClimbLedge: 0
+  isTouchingWall: 0
+  isTouchingWallAbove: 0
+  ledgeDetected: 0
   climbAngleLimit: 40
   positionOffset: 0.7
   offsetFromWall: 0.45
@@ -6752,6 +6766,12 @@ MonoBehaviour:
   rotateSpeed: 5
   rayForwardTowardWall: 1
   rayTowardMoveDirection: 0.5
+  ledgeClimbXoffset1: 10
+  ledgeClimbYoffset2: 10
+  holdPosition: {x: 0, y: 0, z: 0}
+  moveToOffset: {x: -0.8, y: 1.8, z: 0}
+  moveToPoint: {fileID: 0}
+  yOffset: {x: 0.8, y: 0.8, z: -0.18}
   startPos: {x: -27.949999, y: 7.1021066, z: -12.709856}
   targetPos: {x: -27.949999, y: 7.6021066, z: -12.709856}
   startRot: {x: 0, y: 0, z: 0, w: 0}
@@ -6761,10 +6781,12 @@ MonoBehaviour:
     leftHand: {x: -0.25, y: 0.6, z: 0.3}
     rightFoot: {x: 0.2, y: -0.65, z: 0.3}
     leftFoot: {x: -0.25, y: -0.6, z: 0.3}
-  thisAnimHook: {fileID: 1816877911}
   whatIsClimbable:
     serializedVersion: 2
     m_Bits: 1024
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!114 &1591402183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6796,7 +6818,7 @@ MonoBehaviour:
   groundCheckRadius: 0.4
   whatIsGround:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 1280
   slideTurnSpeed: 5
   slopeGravityMultiplier: 10
   currentSlideVelocity: 0
@@ -6918,7 +6940,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -6934,7 +6956,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1604707213}
-  m_LocalRotation: {x: 0.0033823, y: 0.9950523, z: 0.03643632, w: -0.092368424}
+  m_LocalRotation: {x: -0.024699539, y: -0.73734146, z: -0.026999595, w: 0.67452836}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -7386,7 +7408,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -7468,7 +7490,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1710264199}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -13.761688, y: 6.6000004, z: 4.36311}
+  m_LocalPosition: {x: -24.267778, y: 9.45, z: -17.590387}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1864573188}
@@ -7932,14 +7954,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1066345c8f4f534449033ec24352c1cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InputX: InputX
-  InputY: InputY
-  isAiming: isAiming
-  moveSpeed: moveSpeed
-  isJumping: isJumping
-  isSliding: isSliding
-  isGrounded: isGrounded
-  isClimbing: isClimbing
   lerpTime: 10
   climbLerpSpeed: 10
   rightHand_Weight: 0
@@ -7947,6 +7961,7 @@ MonoBehaviour:
   rightFoot_Weight: 0
   leftFoot_Weight: 0
   wallOffset: 0.1
+  goalsHaveUpdated: 0
   isMirroringAnimation: 1
   whatIsClimbable:
     serializedVersion: 2
@@ -8232,7 +8247,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 1.7756757, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -8248,8 +8263,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1864573186}
-  m_LocalRotation: {x: -0.023139944, y: 0.7741557, z: 0.028347645, w: 0.6319367}
-  m_LocalPosition: {x: -5.237171, y: 0, z: -3.522025}
+  m_LocalRotation: {x: 0.015817758, y: 0.9011441, z: 0.03299764, w: -0.43197265}
+  m_LocalPosition: {x: -0.9740982, y: 0, z: 2.4187326}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1454241294}
@@ -10094,14 +10109,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1066345c8f4f534449033ec24352c1cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InputX: InputX
-  InputY: InputY
-  isAiming: isAiming
-  moveSpeed: moveSpeed
-  isJumping: isJumping
-  isSliding: isSliding
-  isGrounded: isGrounded
-  isClimbing: isClimbing
   lerpTime: 0
   climbLerpSpeed: 10
   rightHand_Weight: 0
@@ -10109,6 +10116,7 @@ MonoBehaviour:
   rightFoot_Weight: 0
   leftFoot_Weight: 0
   wallOffset: 0.1
+  goalsHaveUpdated: 0
   isMirroringAnimation: 0
   whatIsClimbable:
     serializedVersion: 2
@@ -11886,14 +11894,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1066345c8f4f534449033ec24352c1cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InputX: InputX
-  InputY: InputY
-  isAiming: isAiming
-  moveSpeed: moveSpeed
-  isJumping: isJumping
-  isSliding: isSliding
-  isGrounded: isGrounded
-  isClimbing: isClimbing
   lerpTime: 8
   climbLerpSpeed: 0
   rightHand_Weight: 0
@@ -11901,6 +11901,7 @@ MonoBehaviour:
   rightFoot_Weight: 0
   leftFoot_Weight: 0
   wallOffset: 0
+  goalsHaveUpdated: 0
   isMirroringAnimation: 0
   whatIsClimbable:
     serializedVersion: 2
