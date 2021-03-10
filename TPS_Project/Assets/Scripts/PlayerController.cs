@@ -89,27 +89,10 @@ namespace DS
                 {
                     thisFreeClimb.cancelClimb(true);
                 }
-
-                thisFreeClimb.checkClimbingState(Time.deltaTime);
                 return;
-            }
+            }          
 
-            isGrounded = checkIsGrounded();
-
-            if (!isClimbing)
-            {
-                if (!isGrounded && !stopClimbing)
-                {
-                    if (thisFreeClimb.CheckForClimbableWall())
-                    {
-                        enableClimbing();
-                    }
-                }
-                else if(isGrounded && stopClimbing)
-                {
-                    stopClimbing = false;
-                }
-            }           
+            isGrounded = checkIsGrounded();           
 
             Jump();
             resetJump();
@@ -121,9 +104,26 @@ namespace DS
             if (!canMove)
                 return;
 
-            if (isClimbing)            
+            if (isClimbing)
+            {          
+                thisFreeClimb.checkClimbingState(Time.deltaTime);
                 return;
-            
+            }
+
+            if (!isClimbing)
+            {
+                if (!isGrounded && !stopClimbing)
+                {
+                    if (thisFreeClimb.CheckForClimbableWall())
+                    {
+                        enableClimbing();
+                    }
+                }
+                else if (isGrounded && stopClimbing)
+                {
+                    stopClimbing = false;
+                }
+            }
 
             MovePlayer();
 
@@ -370,7 +370,12 @@ namespace DS
             else
             {
                 fallDirection.rotation = Quaternion.FromToRotation(Vector3.up, slopeHit.normal);
-                isSliding = false;
+
+                if (isSliding) 
+                {
+                    input.isCrouching = false;
+                    isSliding = false;
+                }
             }
         }
 
@@ -407,6 +412,7 @@ namespace DS
         {
             isClimbing = false;
 
+            canMove = true;
             stopClimbing = true;
             thisCC.enabled = true;
         }

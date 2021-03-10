@@ -17,6 +17,7 @@ namespace DS
         private string isJumping = "isJumping";
         private string isSliding = "isSliding";
         private string isGrounded = "isGrounded";
+        private string isCrouching = "isCrouching";
         private string isClimbing = "isClimbing";
         private string isClimbingLedge = "isClimbingLedge";
 
@@ -56,7 +57,7 @@ namespace DS
         }
 
         //Will refactor this
-        public void updateAnimatorStates(float _inputX, float _inputY, float _speed, bool _isAiming, bool _isJumping, bool _isGrounded, bool _isSliding, bool _isClimbing)
+        public void updateAnimatorStates(float _inputX, float _inputY, float _speed, bool _isAiming, bool _isJumping, bool _isCrouching, bool _isGrounded, bool _isSliding, bool _isClimbing)
         {
             float XinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputX), _inputX, lerpTime * Time.deltaTime);
             float YinputLerped = Mathf.Lerp(thisAnimator.GetFloat(InputY), _inputY, lerpTime * Time.deltaTime);
@@ -64,6 +65,7 @@ namespace DS
 
             thisAnimator.SetBool(isAiming, _isAiming); 
             thisAnimator.SetBool(isJumping, _isJumping);
+            thisAnimator.SetBool(isCrouching, _isCrouching);
             thisAnimator.SetBool(isGrounded, _isGrounded);
             thisAnimator.SetBool(isSliding, _isSliding);
             thisAnimator.SetBool(isClimbing, _isClimbing);
@@ -73,7 +75,6 @@ namespace DS
             thisAnimator.SetFloat(InputX, XinputLerped);
             thisAnimator.SetFloat(InputY, YinputLerped);
         }
-
 
         #region Climbing     
         public void beginLedgeClimb()

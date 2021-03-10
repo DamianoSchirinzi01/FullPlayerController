@@ -46,6 +46,11 @@ namespace DS
         public Quaternion targetRot;
 
         private Transform climbHelper;
+        public Transform orientation;
+
+        public float miny;
+        public float maxY;
+        public float testMax;
 
         public IKSnapshot baseIKsnapshot;
 
@@ -81,6 +86,32 @@ namespace DS
                 checkLedgeClimb();
             }
         }
+
+        private void FixedUpdate()
+        {
+            if (isClimbing)
+            {
+                ClimbingLookRotation();
+            }
+        }
+
+        private void ClimbingLookRotation()
+        {
+            if (input.mouseX != 0 || input.mouseY != 0f)
+            {
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseX, Vector3.up);
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
+            }
+
+            var rotX = orientation.eulerAngles.x;
+            var rotY = orientation.eulerAngles.y;
+
+            rotX = Mathf.Clamp(rotX, 1, 25);
+            rotY = Mathf.Clamp(rotY, 200, 355);            
+
+            orientation.eulerAngles = new Vector3(rotX, rotY, 0);
+        }
+
 
         //Cast ray to detect if climbable wall is infront of player
         public bool CheckForClimbableWall()
@@ -177,9 +208,7 @@ namespace DS
 
                 lookForGround();
             }
-        }
-
-      
+        }      
 
         private bool checkCanMove(Vector3 moveDir) //Apply layer mask to these rayCasts!!
         {
@@ -274,11 +303,10 @@ namespace DS
         }
 
         #region LedgeClimbing
-        public void finishLedgeClimb()
+        public void finishLedgeClimb() //Called by animator
         {
             canClimbLedge = false;
             transform.position = moveToPoint.position;
-            thisController.canMove = true;
             ledgeDetected = false;
 
             Destroy(moveToPoint.gameObject);
@@ -288,7 +316,7 @@ namespace DS
 
         private void checkLedgeClimb()
         {
-            if (ledgeDetected && !canClimbLedge)
+            if (ledgeDetected && !canClimbLedge) //Hold position while animation plays
             {
                 canClimbLedge = true;
 
@@ -300,10 +328,11 @@ namespace DS
 
                 thisController.canMove = false;
 
+                input.startedToClimbLedge = true;
                 thisAnimHook.beginLedgeClimb();
             }
 
-            if (canClimbLedge)
+            if (canClimbLedge) //Set transform to hold position
             {
                 transform.position = holdPosition;
             }
@@ -354,12 +383,21 @@ namespace DS
 
             if (_pushBack)
             {
-                Vector3 dir = ((-transform.forward * 3) + (Vector3.up / 2));
+                Vector3 origin = transform.position;
+                Vector3 direction = transform.forward;
+                RaycastHit hit;
+
+                Physics.Raycast(origin, direction * 5f, out hit, whatIsClimbable);                
+                Quaternion lookAtDir = Quaternion.LookRotation(hit.normal);
+
+                Vector3 dir = ((-transform.forward * 2));
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookAtDir, 100 * Time.deltaTime);
                 transform.Translate(dir * 150f * Time.deltaTime, Space.World);
             }
 
             thisAnimHook.goalsHaveUpdated = false;
             isClimbing = false;
+            input.startedToClimbLedge = false;
 
             thisController.disableClimbing();
         }
@@ -371,8 +409,6 @@ namespace DS
         }
 
         #endregion
-
-
     }
 
 

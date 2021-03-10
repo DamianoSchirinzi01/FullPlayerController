@@ -14,12 +14,13 @@ namespace DS
         [HideInInspector] public float horizontal, vertical;
         [HideInInspector] public float mouseX, mouseY;
 
-        public bool isAiming, isCrouching, isJumping, isSprinting, isGrounded, isSliding, isClimbing;
+        public bool isAiming, isCrouching, isJumping, isSprinting, isGrounded, isSliding, isClimbing, startedToClimbLedge;
         private bool canSprint = true;
 
         public float mouseSensitivity;
 
         public CinemachineVirtualCamera climbCam;
+        public CinemachineVirtualCamera ledgeClimbCam;
         public CinemachineVirtualCamera aimCam;
         public CinemachineFreeLook freeCam;
 
@@ -39,7 +40,7 @@ namespace DS
             checkSomeStates();
             cancelOutCurrentAction();
 
-            thisAnimHook.updateAnimatorStates(horizontal, vertical, thisPlayer.currentSpeed, isAiming, isJumping, isGrounded, isSliding, isClimbing);
+            thisAnimHook.updateAnimatorStates(horizontal, vertical, thisPlayer.currentSpeed, isAiming, isJumping, isCrouching , isGrounded, isSliding, isClimbing);
         }
 
         private void captureInput()
@@ -47,10 +48,13 @@ namespace DS
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
 
+            if (isClimbing) mouseSensitivity = 50f;
+            else { mouseSensitivity = 150f; }
+
             mouseX = Input.GetAxisRaw("Mouse X") * (Time.fixedDeltaTime * mouseSensitivity);
             mouseY = Input.GetAxisRaw("Mouse Y") * (Time.fixedDeltaTime * mouseSensitivity);
 
-            if(!isClimbing) isAiming = Input.GetMouseButton(1);
+            if(!isClimbing && !isSliding) isAiming = Input.GetMouseButton(1);
             if (canSprint && !isAiming) isSprinting = Input.GetButton("Sprinting");
             isJumping = Input.GetButtonDown("Jump");
             if (Input.GetKeyDown(KeyCode.C)) { toggleCrouch(); };
@@ -101,6 +105,12 @@ namespace DS
             {
                 isCrouching = false;
             }
+
+            if (isClimbing)
+            {
+                isSprinting = false;
+                isCrouching = false;
+            }           
         }
 
         private void toggleCrouch()
@@ -126,27 +136,38 @@ namespace DS
 
         private void toggleCameras() //Temp, should only call on state changed
         {
-            if (isAiming)
+            if (isAiming) //Aiming cam
             {
                 aimCam.m_Priority = 25;
                 freeCam.m_Priority = 8;
                 climbCam.m_Priority = 8;
+                ledgeClimbCam.m_Priority = 8;
             }
 
-            if (!isAiming)
+            if (!isAiming) //Free look cam
             {
                 freeCam.m_Priority = 25;
                 aimCam.m_Priority = 8;
                 climbCam.m_Priority = 8;
+                ledgeClimbCam.m_Priority = 8;
             }
 
-            if(!isAiming && isClimbing)
+            if (isClimbing) //Climbing cam
             {
                 climbCam.m_Priority = 25;
+                ledgeClimbCam.m_Priority = 8;
+                freeCam.m_Priority = 8;
+                aimCam.m_Priority = 8;
+            }           
+
+            if(startedToClimbLedge) //ledge climbing cam
+            {
+                ledgeClimbCam.m_Priority = 25;
+                climbCam.m_Priority = 8;
                 freeCam.m_Priority = 8;
                 aimCam.m_Priority = 8;
             }
-        }
+        }      
     }
 }
 
