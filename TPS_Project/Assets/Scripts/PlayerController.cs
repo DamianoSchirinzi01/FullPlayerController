@@ -26,7 +26,7 @@ namespace DS
         private Vector3 moveDirection;
         Vector3 velocity;
 
-        [Header("Rotation Values")]    
+        [Header("Rotation Values")]
         private float targetRotation;
         public float freeAimRotationSpeed = .1f;
         private float turnSmoothVelocity;
@@ -200,19 +200,29 @@ namespace DS
                 orientation.transform.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
             }
 
+            var orientationAngle = orientation.localEulerAngles;
+            orientationAngle.z = 0;
+
             var xOrientation = orientation.localEulerAngles.x;
 
-            xOrientation = HelperFunctions.ClampAngle(xOrientation, -20, 20);
+            if (xOrientation > 330 && xOrientation < 340)
+            {
+                orientationAngle.x = 340;
+            }
+            else if (xOrientation < 180 && xOrientation > 20)
+            {
+                orientationAngle.x = 20;
+            }
 
-            orientation.localEulerAngles = orientation.localEulerAngles;
+            orientation.localEulerAngles = orientationAngle;
 
             transform.rotation = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
-            orientation.localEulerAngles = new Vector3(xOrientation, 0, 0);
+            orientation.transform.localEulerAngles = new Vector3(orientationAngle.x, 0, 0);
         }
 
         private void freeLookRotation()
         {
-            if (input.rawDirection.magnitude >= .1f && !isSliding)
+            if (input.rawDirection.magnitude >= .1f)
             {
                 float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref turnSmoothVelocity, freeAimRotationSpeed);
                 transform.rotation = Quaternion.Euler(0, angle, 0);
