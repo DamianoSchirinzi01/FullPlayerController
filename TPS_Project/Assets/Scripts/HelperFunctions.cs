@@ -8,7 +8,7 @@ namespace DS
     {
         #region clamping functions
         public static float ClampAngle(float angle, float min, float max)
-        {
+        {   //Normalises angle value passed in between -180 to 180 to make the angle clampable
             angle = NormalizeAngle(angle);
             if (angle > 180)
             {
@@ -39,14 +39,11 @@ namespace DS
                 max += 360;
             }
 
-            // Aim is, convert angles to -180 until 180.
             return Mathf.Clamp(angle, min, max);
         }
 
-        /** If angles over 360 or under 360 degree, then normalize them.
-         */
         public static float NormalizeAngle(float angle)
-        {
+        { //If the angle is above or below 360 degrees, normalise it
             while (angle > 360)
                 angle -= 360;
             while (angle < 0)
