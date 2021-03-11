@@ -6,7 +6,6 @@ namespace DS
 {
     public static class HelperFunctions
     {
-<<<<<<< HEAD
         #region clamping functions
         public static float ClampAngle(float angle, float min, float max)
         {   //Normalises angle value passed in between -180 to 180 to make the angle clampable
@@ -55,8 +54,7 @@ namespace DS
         #endregion
 
         #region Easing Functions
-=======
->>>>>>> parent of 38394cd (Fixed camera rotation issue)
+
         public static float smoothLerp(float value, float _start, float _end, float duration)
         {
             float t = 0;
@@ -89,5 +87,6 @@ namespace DS
             return 1 + C3 * Mathf.Pow(value - 1, 3) + C1 * Mathf.Pow(value - 1, 2);
         }
     }
+    #endregion
 }
 

@@ -150,7 +150,7 @@ namespace DS
 
             checkShouldSlide();
 
-            if (input.rawDirection.magnitude > 0.1f)
+            if (input.rawDirection.magnitude > 0.1f && !isSliding)
             {
                 moveDirection = Quaternion.Euler(0f, targetRotation, 0f) * Vector3.forward;
             }
@@ -196,28 +196,15 @@ namespace DS
         {
             if (input.mouseX != 0 || input.mouseY != 0f)
             {
-                orientation.transform.rotation *= Quaternion.AngleAxis(input.mouseX, Vector3.up);
-                orientation.transform.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
-            }
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseX, Vector3.up);
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
+            }          
 
-            var orientationAngle = orientation.localEulerAngles;
-            orientationAngle.z = 0;
-
-            var xOrientation = orientation.localEulerAngles.x;
-
-            if (xOrientation > 330 && xOrientation < 340)
-            {
-                orientationAngle.x = 340;
-            }
-            else if (xOrientation < 180 && xOrientation > 20)
-            {
-                orientationAngle.x = 20;
-            }
-
-            orientation.localEulerAngles = orientationAngle;
+            var xRot = orientation.localEulerAngles.x;
+            xRot = HelperFunctions.ClampAngle(xRot, -20, 20);
 
             transform.rotation = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
-            orientation.transform.localEulerAngles = new Vector3(orientationAngle.x, 0, 0);
+            orientation.localEulerAngles = new Vector3(xRot, 0, 0);
         }
 
         private void freeLookRotation()

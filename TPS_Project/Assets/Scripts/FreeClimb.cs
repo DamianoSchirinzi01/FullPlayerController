@@ -106,8 +106,8 @@ namespace DS
             var rotX = orientation.eulerAngles.x;
             var rotY = orientation.eulerAngles.y;
 
-            rotX = Mathf.Clamp(rotX, 1, 25);
-            rotY = Mathf.Clamp(rotY, 200, 355);            
+            rotX = HelperFunctions.ClampAngle(rotX, -20f, 20f);
+            rotY = HelperFunctions.ClampAngle(rotY, 200f, 355f);
 
             orientation.eulerAngles = new Vector3(rotX, rotY, 0);
         }
