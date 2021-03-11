@@ -2124,7 +2124,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7780488, y: 1}
+    m_SensorSize: {x: 1.7783418, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2140,7 +2140,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 514016801}
-  m_LocalRotation: {x: -0.025874866, y: -0.7066407, z: -0.025875414, w: 0.70662576}
+  m_LocalRotation: {x: -0.013401938, y: 0.9834762, z: -0.08192635, w: -0.16088216}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -4709,8 +4709,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1087175437}
-  m_LocalRotation: {x: 0.025874916, y: 0.7066407, z: 0.025875464, w: -0.70662576}
-  m_LocalPosition: {x: 11.4, y: 6.05, z: 9.000095}
+  m_LocalRotation: {x: -0.013401938, y: 0.98347616, z: -0.08192635, w: -0.16088215}
+  m_LocalPosition: {x: -11.32816, y: 7.044375, z: 4.3936186}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -6676,7 +6676,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1591402179}
   m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 6.9, y: 4.85, z: 9}
+  m_LocalPosition: {x: -12.59, y: 4.85, z: 0.64}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1816877910}
@@ -6745,8 +6745,8 @@ MonoBehaviour:
   startRot: {x: 0, y: 0, z: 0, w: 0}
   targetRot: {x: 0, y: 0, z: 0, w: 0}
   orientation: {fileID: 506599041}
-  miny: 200
-  maxY: 355
+  miny: 0
+  maxY: 0
   testMax: 0
   baseIKsnapshot:
     rightHand: {x: 0.25, y: 0.55, z: 0.3}
@@ -6914,7 +6914,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7780488, y: 1}
+    m_SensorSize: {x: 1.7783418, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -6930,7 +6930,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1604707213}
-  m_LocalRotation: {x: -0.025874866, y: -0.7066407, z: -0.025875414, w: 0.70662576}
+  m_LocalRotation: {x: -0.013401938, y: 0.9834762, z: -0.08192635, w: -0.16088216}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -7382,7 +7382,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7780488, y: 1}
+    m_SensorSize: {x: 1.7783418, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -7464,7 +7464,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1710264199}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.4, y: 6.05, z: 9.000095}
+  m_LocalPosition: {x: -11.32816, y: 7.044375, z: 4.3936186}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1864573188}
@@ -7802,7 +7802,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CollideAgainst:
     serializedVersion: 2
-    m_Bits: 257
+    m_Bits: 1281
   m_IgnoreTag: Player
   m_TransparentLayers:
     serializedVersion: 2
@@ -7813,7 +7813,7 @@ MonoBehaviour:
   m_MinimumOcclusionTime: 0
   m_CameraRadius: 0.1
   m_Strategy: 1
-  m_MaximumEffort: 1
+  m_MaximumEffort: 10
   m_SmoothingTime: 1
   m_Damping: 0
   m_DampingWhenOccluded: 0
@@ -8322,7 +8322,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7780488, y: 1}
+    m_SensorSize: {x: 1.7783418, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -8338,8 +8338,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1864573186}
-  m_LocalRotation: {x: -0.026104743, y: -0.7003066, z: -0.025643466, w: 0.71290374}
-  m_LocalPosition: {x: -0.0007133484, y: 0, z: -0.08031368}
+  m_LocalRotation: {x: -0.021238767, y: -0.81378216, z: -0.029798664, w: 0.5800169}
+  m_LocalPosition: {x: 2.9919224, y: -0.99437475, z: -2.2854548}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1454241294}

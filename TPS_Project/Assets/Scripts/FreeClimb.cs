@@ -95,23 +95,6 @@ namespace DS
             }
         }
 
-        private void ClimbingLookRotation()
-        {
-            if (input.mouseX != 0 || input.mouseY != 0f)
-            {
-                orientation.rotation *= Quaternion.AngleAxis(input.mouseX, Vector3.up);
-                orientation.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
-            }
-
-            var rotX = orientation.eulerAngles.x;
-            var rotY = orientation.eulerAngles.y;
-
-            rotX = Mathf.Clamp(rotX, 1, 25);
-            rotY = Mathf.Clamp(rotY, 200, 355);            
-
-            orientation.eulerAngles = new Vector3(rotX, rotY, 0);
-        }
-
 
         //Cast ray to detect if climbable wall is infront of player
         public bool CheckForClimbableWall()
@@ -301,6 +284,26 @@ namespace DS
 
             return target + offset;
         }
+
+        #region Camera
+        private void ClimbingLookRotation()
+        {
+            if (input.mouseX != 0 || input.mouseY != 0f)
+            {
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseX, Vector3.up);
+                orientation.rotation *= Quaternion.AngleAxis(input.mouseY, Vector3.right);
+            }
+
+            var rotX = orientation.eulerAngles.x;
+            var rotY = orientation.eulerAngles.y;
+
+            rotX = HelperFunctions.ClampAngle(rotX, -10, 25);
+            rotY = HelperFunctions.ClampAngle(rotY, 200, 340);
+
+            orientation.eulerAngles = new Vector3(rotX, rotY, 0);
+        }
+        #endregion
+
 
         #region LedgeClimbing
         public void finishLedgeClimb() //Called by animator
