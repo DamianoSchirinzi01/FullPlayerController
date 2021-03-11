@@ -63,7 +63,7 @@ namespace DS
             {
                 t += Time.deltaTime * duration;
 
-                value = Mathf.Lerp(_start, _end, easeInQuint(t));
+                value = Mathf.Lerp(_start, _end, easeInCubic(t));
             }
 
             return value;
