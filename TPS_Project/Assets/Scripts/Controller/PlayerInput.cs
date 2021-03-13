@@ -8,6 +8,7 @@ namespace DS
     public class PlayerInput : MonoBehaviour
     {
         private PlayerController thisPlayer;
+        private WeaponManager thisWeaponManager;
         private AnimHook thisAnimHook;
 
         [HideInInspector] public Vector3 rawDirection;
@@ -29,13 +30,16 @@ namespace DS
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            thisPlayer = GetComponent<PlayerController>();
             thisAnimHook = GetComponentInChildren<AnimHook>();
+
+            thisPlayer = GetComponent<PlayerController>();
+            thisWeaponManager = GetComponent<WeaponManager>();
         }
 
         private void Update()
         {
             captureInput();
+            swapWeaponsInput();
             toggleCameras();
             checkSomeStates();
             cancelOutCurrentAction();
@@ -60,6 +64,30 @@ namespace DS
             if (Input.GetKeyDown(KeyCode.C)) { toggleCrouch(); };
 
             rawDirection = new Vector3(horizontal, 0, vertical).normalized;
+        }
+
+        private void swapWeaponsInput()
+        {
+            int inputIndex;
+
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                inputIndex = 0;
+                thisWeaponManager.swapWeapon(inputIndex);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                inputIndex = 1;
+                thisWeaponManager.swapWeapon(inputIndex);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                inputIndex = 2;
+                thisWeaponManager.setCurrentWeaponIndex(inputIndex);
+                thisWeaponManager.stashAllWeapons();
+            }
         }
 
         private void checkSomeStates()
@@ -110,6 +138,9 @@ namespace DS
             {
                 isSprinting = false;
                 isCrouching = false;
+
+                thisWeaponManager.setCurrentWeaponIndex(2);
+                thisWeaponManager.stashAllWeapons();
             }           
         }
 

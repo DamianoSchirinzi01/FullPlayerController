@@ -57,9 +57,9 @@ namespace DS
         void Awake()
         {
             input = GetComponentInParent<PlayerInput>();
+            thisFreeClimb = GetComponentInParent<FreeClimb>();
 
             thisAnimator = GetComponent<Animator>();
-            thisFreeClimb = GetComponent<FreeClimb>();
             thisIKmanager = GetComponent<IKManager>();
         }
 
@@ -94,9 +94,25 @@ namespace DS
                 setClimbingAnimatorIKpositions(AvatarIKGoal.RightFoot, rightFoot, rightFoot_Weight);
             }
 
+            if (thisIKmanager.isLookIK_enabled)
+            {
+                if (input.isAiming)
+                {
+                    thisAnimator.SetLookAtWeight(thisIKmanager.IK_headWeight);
+                }
+                else
+                {
+                    thisAnimator.SetLookAtWeight(thisIKmanager.IK_lookWeight, thisIKmanager.IK_chestWeight, thisIKmanager.IK_headWeight, thisIKmanager.IK_eyeWeight, thisIKmanager.IK_clampedWeight);
+                }
 
-            //setAimingIKpositions(AvatarIKGoal.LeftHand, thisIKmanager.currentLeftIKpoint.position, thisIKmanager.currentLeftIKpoint.rotation, 1);
-            //setAimingIKpositions(AvatarIKGoal.RightHand, thisIKmanager.currentRightIKpoint.position, thisIKmanager.currentRightIKpoint.rotation, 1);
+                thisAnimator.SetLookAtPosition(thisIKmanager.lookAtPoint.position);
+            }
+
+            if (thisIKmanager.isGunEquipped)
+            {
+                setAimingIKpositions(AvatarIKGoal.LeftHand, thisIKmanager.currentLeftHand_IK_point.position, thisIKmanager.currentLeftHand_IK_point.rotation, thisIKmanager.IK_handWeight);
+                setAimingIKpositions(AvatarIKGoal.RightHand, thisIKmanager.currentRightHand_IK_point.position, thisIKmanager.currentRightHand_IK_point.rotation, thisIKmanager.IK_handWeight);
+            }           
         }
 
         private void setAimingIKpositions(AvatarIKGoal goal, Vector3 targetPos, Quaternion targetRot, float currentWeight)

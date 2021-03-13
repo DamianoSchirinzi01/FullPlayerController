@@ -6,68 +6,65 @@ namespace DS
 {
     public class IKManager : MonoBehaviour
     {
-        private PlayerInput input;
-        //Store weapon
-        public List<IKpoints> weaponIKpoints;
+        private WeaponManager thisWeaponManager;
 
-        public Vector3 assaultRifleRestingPos;
-        public Quaternion assaultRifleRestingRot;
+        public Transform currentRightHand_IK_point;
+        public Transform currentLeftHand_IK_point;
+        public Transform lookAtPoint;
 
-        public Vector3 AssaultRifleAimingPos;
-        public Quaternion AssaultRifleAimingRot;
+        public float IK_lerpMultiplier;
+        public float IK_handWeight;
+        public float IK_lookWeight, IK_chestWeight, IK_headWeight, IK_eyeWeight, IK_clampedWeight;
 
-        public Transform currentRightIKpoint { get; private set; }
-        public Transform currentLeftIKpoint {get; private set; }
+        public bool isGunEquipped;
+        public bool isLookIK_enabled = true;
 
         private void Awake()
         {
-            input = GetComponentInParent<PlayerInput>();
-        }
-
-        private void Start()
-        {
-            setCurrentIKpoints(weaponIKpoints[0]);
+            thisWeaponManager = GetComponentInParent<WeaponManager>();
         }
 
         private void Update()
         {
-            setWeaponPosition();
+            isGunEquipped = checkIfGunIsEquipped();
         }
 
-        public void setCurrentIKpoints(IKpoints currentWeaponIKpoints)
+        public void updateCurrentIKpoints(Weapon thisWeapon)
         {
-            currentRightIKpoint = currentWeaponIKpoints.rightIKpoint;
-            currentLeftIKpoint = currentWeaponIKpoints.leftIKpoint;
+            currentRightHand_IK_point = thisWeapon.rightIK_point;
+            currentLeftHand_IK_point = thisWeapon.leftIK_point;
         }
 
-        public void setWeaponPosition()
+        public void resetWeight()
         {
-            if (input.isAiming)
+            IK_handWeight = .2f;
+        }
+
+        public bool checkIfGunIsEquipped()
+        {
+            if (thisWeaponManager.currentHandState == handStates.GunEquipped_Resting || thisWeaponManager.currentHandState == handStates.GunEquipped_Aiming)
             {
-                weaponIKpoints[0].transform.position = AssaultRifleAimingPos;
-                weaponIKpoints[0].transform.rotation = AssaultRifleAimingRot;
+                IK_handWeight += Time.deltaTime * IK_lerpMultiplier;
+
+                if(IK_handWeight >= .99f)
+                {
+                    IK_handWeight = 1;
+                }
+
+                return true;
             }
             else
             {
-                weaponIKpoints[0].transform.position = assaultRifleRestingPos;
-                weaponIKpoints[0].transform.rotation = assaultRifleRestingRot;
+                IK_handWeight -= Time.deltaTime;
+
+                if (IK_handWeight <= .01f)
+                {
+                    IK_handWeight = 0;
+                }
+
+                return false;
             }
         }
-
-
-
-        //Get positions for weapon when resting and when aiming
-        //Eventually lerp weight for smooth transition between states
-        //Get IKpoints
-        //Pass IKpoints to Anim hook
-
-
-        //Handle weapon Pos & Rot
-        //If weapon is equipped but not aiming, put in resting position
-        //else if weapon is equipped and player is aiming, put in aim position
-
-
-
     }
 
 }
