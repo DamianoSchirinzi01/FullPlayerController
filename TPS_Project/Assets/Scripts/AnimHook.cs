@@ -8,8 +8,6 @@ namespace DS
     {
         private Animator thisAnimator;
         private FreeClimb thisFreeClimb;
-        private PlayerInput input;
-        private IKManager thisIKmanager;
 
         private string InputX = "InputX";
         private string InputY = "InputY";
@@ -49,18 +47,13 @@ namespace DS
         public bool isMirroringAnimation;
         private bool isMovingLeft;
 
-        private bool climbing;
-
         public LayerMask whatIsClimbable;
 
         // Start is called before the first frame update
         void Awake()
         {
-            input = GetComponentInParent<PlayerInput>();
-
             thisAnimator = GetComponent<Animator>();
             thisFreeClimb = GetComponent<FreeClimb>();
-            thisIKmanager = GetComponent<IKManager>();
         }
 
         //Will refactor this
@@ -81,30 +74,6 @@ namespace DS
 
             thisAnimator.SetFloat(InputX, XinputLerped);
             thisAnimator.SetFloat(InputY, YinputLerped);
-        }
-        private void OnAnimatorIK()
-        {
-            delta = Time.deltaTime;
-
-            if (input.isClimbing)
-            {
-                setClimbingAnimatorIKpositions(AvatarIKGoal.LeftHand, leftHand, leftHand_Weight);
-                setClimbingAnimatorIKpositions(AvatarIKGoal.RightHand, rightHand, rightHand_Weight);
-                setClimbingAnimatorIKpositions(AvatarIKGoal.LeftFoot, leftFoot, leftFoot_Weight);
-                setClimbingAnimatorIKpositions(AvatarIKGoal.RightFoot, rightFoot, rightFoot_Weight);
-            }
-
-
-            //setAimingIKpositions(AvatarIKGoal.LeftHand, thisIKmanager.currentLeftIKpoint.position, thisIKmanager.currentLeftIKpoint.rotation, 1);
-            //setAimingIKpositions(AvatarIKGoal.RightHand, thisIKmanager.currentRightIKpoint.position, thisIKmanager.currentRightIKpoint.rotation, 1);
-        }
-
-        private void setAimingIKpositions(AvatarIKGoal goal, Vector3 targetPos, Quaternion targetRot, float currentWeight)
-        {
-            thisAnimator.SetIKPositionWeight(goal, currentWeight);
-            thisAnimator.SetIKRotationWeight(goal, currentWeight);
-            thisAnimator.SetIKPosition(goal, targetPos);
-            thisAnimator.SetIKRotation(goal, targetRot);
         }
 
         #region Climbing     
@@ -342,9 +311,19 @@ namespace DS
                     updateIKposition(thisGoal, newPos);
                 }
             }
-        }       
+        }
 
-        private void setClimbingAnimatorIKpositions(AvatarIKGoal goal, Vector3 targetPos, float weight)
+        private void OnAnimatorIK()
+        {
+            delta = Time.deltaTime;
+
+            setAnimatorIKpositions(AvatarIKGoal.LeftHand, leftHand, leftHand_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.RightHand, rightHand, rightHand_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.LeftFoot, leftFoot, leftFoot_Weight);
+            setAnimatorIKpositions(AvatarIKGoal.RightFoot, rightFoot, rightFoot_Weight);
+        }
+
+        private void setAnimatorIKpositions(AvatarIKGoal goal, Vector3 targetPos, float weight)
         {
             IKstates thisIKstate = getIKstates(goal);
             if(thisIKstate == null)
