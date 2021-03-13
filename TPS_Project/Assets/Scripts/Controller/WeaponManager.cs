@@ -63,17 +63,15 @@ namespace DS
             equipWeapon(weaponsList[currentWeaponIndex]);
         }
 
-        //Show current weapon
-        //Hide all other weapons
         private void equipWeapon(Weapon thisWeapon)
         {
             currentWeapon = thisWeapon.gameObject.transform;
 
-            foreach(Weapon w in weaponsList)
+            foreach(Weapon w in weaponsList) //If w is not "thisWeapon"
             {
                 if(w != thisWeapon)
                 {
-                    setWeaponToHolsteredPos(w);
+                    setWeaponToHolsteredPos(w); //Holster w
                 }
             }
 

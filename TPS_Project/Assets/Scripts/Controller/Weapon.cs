@@ -6,8 +6,6 @@ namespace DS
 {
     public class Weapon : MonoBehaviour
     {
-        public int weaponID;
-
         public Transform rightIK_point;
         public Transform leftIK_point;
 
