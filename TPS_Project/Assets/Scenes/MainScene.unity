@@ -2218,7 +2218,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7782427, y: 1}
+    m_SensorSize: {x: 1.7768116, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2234,7 +2234,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 514016801}
-  m_LocalRotation: {x: 0.08060749, y: -0.7025046, z: 0.08060919, w: 0.7024898}
+  m_LocalRotation: {x: -0.025874866, y: -0.7066407, z: -0.025875414, w: 0.70662576}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -5080,8 +5080,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1087175437}
-  m_LocalRotation: {x: 0.0806075, y: -0.7025046, z: 0.0806092, w: 0.7024898}
-  m_LocalPosition: {x: 10.423097, y: 7.199306, z: 9.000074}
+  m_LocalRotation: {x: 0.025874916, y: 0.7066407, z: 0.025875464, w: -0.70662576}
+  m_LocalPosition: {x: 11.4, y: 6.05, z: 9.000095}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 547807537}
@@ -7360,7 +7360,7 @@ MonoBehaviour:
   weaponsList:
   - {fileID: 5073924986619473372}
   - {fileID: 9056923386145739724}
-  currentWeapon: {fileID: 0}
+  currentWeaponTransform: {fileID: 0}
   currentWeaponIndex: 0
 --- !u!1 &1593540013
 GameObject:
@@ -7476,7 +7476,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7782427, y: 1}
+    m_SensorSize: {x: 1.7768116, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -7492,7 +7492,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1604707213}
-  m_LocalRotation: {x: 0.08060749, y: -0.7025046, z: 0.08060919, w: 0.7024898}
+  m_LocalRotation: {x: -0.025874866, y: -0.7066407, z: -0.025875414, w: 0.70662576}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -7944,7 +7944,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7782427, y: 1}
+    m_SensorSize: {x: 1.7768116, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -8026,7 +8026,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1710264199}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.423097, y: 7.199306, z: 9.000074}
+  m_LocalPosition: {x: 11.4, y: 6.05, z: 9.000095}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1864573188}
@@ -8594,6 +8594,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTime: 10
   climbLerpSpeed: 10
+  thisWeapon: {fileID: 5073924986619473372}
   rightHand_Weight: 0
   leftHand_Weight: 0
   rightFoot_Weight: 0
@@ -8645,6 +8646,7 @@ MonoBehaviour:
   IK_headWeight: 0.9
   IK_eyeWeight: 1
   IK_clampedWeight: 1
+  lerpHandIK: 0
   isGunEquipped: 0
   isLookIK_enabled: 1
 --- !u!4 &1816933271 stripped
@@ -8909,7 +8911,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 0
-    m_SensorSize: {x: 1.7782427, y: 1}
+    m_SensorSize: {x: 1.7768116, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -8926,7 +8928,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1864573186}
   m_LocalRotation: {x: -0.026104743, y: -0.7003066, z: -0.025643466, w: 0.71290374}
-  m_LocalPosition: {x: 0.9761896, y: -1.1493058, z: -0.0802927}
+  m_LocalPosition: {x: -0.0007133484, y: 0, z: -0.08031368}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1454241294}
@@ -10847,6 +10849,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTime: 0
   climbLerpSpeed: 10
+  thisWeapon: {fileID: 0}
   rightHand_Weight: 0
   leftHand_Weight: 0
   rightFoot_Weight: 0
@@ -12632,6 +12635,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTime: 8
   climbLerpSpeed: 0
+  thisWeapon: {fileID: 0}
   rightHand_Weight: 0
   leftHand_Weight: 0
   rightFoot_Weight: 0

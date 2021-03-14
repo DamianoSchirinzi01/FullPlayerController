@@ -6,11 +6,13 @@ namespace DS
 {
     public class AnimHook : MonoBehaviour
     {
+        private PlayerInput input;
         private Animator thisAnimator;
         private FreeClimb thisFreeClimb;
-        private PlayerInput input;
+        private WeaponManager thisWeaponManger;
         private IKManager thisIKmanager;
 
+        #region parameter references
         private string InputX = "InputX";
         private string InputY = "InputY";
 
@@ -22,10 +24,21 @@ namespace DS
         private string isCrouching = "isCrouching";
         private string isClimbing = "isClimbing";
         private string isClimbingLedge = "isClimbingLedge";
+        private string isSwappingWeapon = "isSwappingWeapon";
+        private string weaponID = "weaponID";
+        private string isWeaponCurrentlyEquipped = "isWeaponCurrentlyEquipped";
+        #endregion
 
         public float lerpTime;
         float delta;
         public float climbLerpSpeed;
+
+        [Header("Weapons")]
+        AnimationEvent rifleSwapEvent;
+        AnimationEvent pistolSwapEvent;
+        AnimationClip rifleSwapClip;
+        AnimationClip pistolSwapClip;
+        public Weapon thisWeapon;
 
         [Header("Climbing")]
         public float rightHand_Weight;
@@ -58,9 +71,16 @@ namespace DS
         {
             input = GetComponentInParent<PlayerInput>();
             thisFreeClimb = GetComponentInParent<FreeClimb>();
+            thisWeaponManger = GetComponentInParent<WeaponManager>();
 
             thisAnimator = GetComponent<Animator>();
             thisIKmanager = GetComponent<IKManager>();
+        }
+
+        private void Start()
+        {
+            setPistolAnimEvent();
+            setRifleAnimEvent();
         }
 
         //Will refactor this
@@ -82,6 +102,53 @@ namespace DS
             thisAnimator.SetFloat(InputX, XinputLerped);
             thisAnimator.SetFloat(InputY, YinputLerped);
         }
+
+        #region setAnimationEvents
+        private void setPistolAnimEvent() //Call at start?
+        {
+            pistolSwapEvent = new AnimationEvent();
+
+            pistolSwapEvent.intParameter = 1;
+            pistolSwapEvent.time = 1.15f;
+            pistolSwapEvent.functionName = "finishWeaponSwap";
+
+            pistolSwapClip = thisAnimator.runtimeAnimatorController.animationClips[27];
+            pistolSwapClip.AddEvent(pistolSwapEvent);
+
+            Debug.Log(pistolSwapClip.name);           
+        }
+        private void setRifleAnimEvent() //Call at start?
+        {
+            rifleSwapEvent = new AnimationEvent();
+
+            rifleSwapEvent.intParameter = 0;
+            rifleSwapEvent.time = 1.1f;
+            rifleSwapEvent.functionName = "finishWeaponSwap";
+
+            rifleSwapClip = thisAnimator.runtimeAnimatorController.animationClips[28];
+            rifleSwapClip.AddEvent(rifleSwapEvent);
+        }
+        #endregion
+
+        public void startWeaponSwap(int InputIndex)
+        {
+            thisAnimator.SetLayerWeight(1, 1);
+            thisAnimator.SetBool(isSwappingWeapon, true);
+            thisAnimator.SetInteger(weaponID, InputIndex);
+
+            thisIKmanager.resetWeight();
+        }
+
+        public void finishWeaponSwap(int animEventInput)
+        {
+            thisAnimator.SetBool(isSwappingWeapon, false);
+            thisWeaponManger.swapWeapon(animEventInput);
+
+            thisAnimator.SetLayerWeight(1, 0);
+            thisIKmanager.startLerpingHandIK();
+        }
+
+
         private void OnAnimatorIK()
         {
             delta = Time.deltaTime;

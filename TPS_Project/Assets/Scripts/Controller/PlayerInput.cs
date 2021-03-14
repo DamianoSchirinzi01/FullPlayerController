@@ -70,19 +70,20 @@ namespace DS
         {
             int inputIndex;
 
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            if (Input.GetKeyDown(KeyCode.Alpha1) && thisWeaponManager.currentWeaponIndex != 0)
             {
+                Debug.Log("Calling");
                 inputIndex = 0;
-                thisWeaponManager.swapWeapon(inputIndex);
+                thisAnimHook.startWeaponSwap(inputIndex); //Rifle
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
+            if (Input.GetKeyDown(KeyCode.Alpha2) && thisWeaponManager.currentWeaponIndex != 1)
+            {               
                 inputIndex = 1;
-                thisWeaponManager.swapWeapon(inputIndex);
+                thisAnimHook.startWeaponSwap(inputIndex); //Pistol
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha3))
+            if (Input.GetKeyDown(KeyCode.Alpha3) && thisWeaponManager.currentWeaponIndex != 2)
             {
                 inputIndex = 2;
                 thisWeaponManager.setCurrentWeaponIndex(inputIndex);

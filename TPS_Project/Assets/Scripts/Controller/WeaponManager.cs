@@ -12,10 +12,9 @@ namespace DS
         private IKManager thisIKmanager;
 
         public List<Weapon> weaponsList;
-        public Transform currentWeapon;
+        public Transform currentWeaponTransform;
 
         public int currentWeaponIndex;
-
 
         private void Awake()
         {
@@ -27,7 +26,7 @@ namespace DS
         {
             currentWeaponIndex = 2;
             stashAllWeapons();
-        }
+        }        
 
         private void Update()
         {
@@ -41,13 +40,13 @@ namespace DS
 
         private void setWeaponToAimingPos(Weapon thisWeapon)
         {
-            currentWeapon.position = thisWeapon.aimingPos.position;
-            currentWeapon.rotation = thisWeapon.aimingPos.rotation;
+            currentWeaponTransform.position = thisWeapon.aimingPos.position;
+            currentWeaponTransform.rotation = thisWeapon.aimingPos.rotation;
         }
         private void setWeaponToRestingPos(Weapon thisWeapon)
         {
-            currentWeapon.position = thisWeapon.restingPos.position;
-            currentWeapon.rotation = thisWeapon.restingPos.rotation;
+            currentWeaponTransform.position = thisWeapon.restingPos.position;
+            currentWeaponTransform.rotation = thisWeapon.restingPos.rotation;
         }
 
         private void setWeaponToHolsteredPos(Weapon thisWeapon)
@@ -60,12 +59,14 @@ namespace DS
         public void swapWeapon(int inputIndex)
         {
             setCurrentWeaponIndex(inputIndex);
+
+            //Check if animation is complete before
             equipWeapon(weaponsList[currentWeaponIndex]);
         }
 
         private void equipWeapon(Weapon thisWeapon)
         {
-            currentWeapon = thisWeapon.gameObject.transform;
+            currentWeaponTransform = thisWeapon.gameObject.transform;
 
             foreach(Weapon w in weaponsList) //If w is not "thisWeapon"
             {
@@ -76,7 +77,7 @@ namespace DS
             }
 
             thisIKmanager.updateCurrentIKpoints(thisWeapon);
-            thisIKmanager.resetWeight();
+            thisIKmanager.stopLerpingHandIK();
         }
 
         //Hide all weapons
@@ -87,7 +88,7 @@ namespace DS
                 setWeaponToHolsteredPos(w);
             }
 
-            currentWeapon = null;
+            currentWeaponTransform = null;
         }
 
         private void handleHandStates()
@@ -95,13 +96,13 @@ namespace DS
             if(currentWeaponIndex == 0 && !input.isAiming || currentWeaponIndex == 1 && !input.isAiming) //If holding gun but not aiming
             {
                 currentHandState = handStates.GunEquipped_Resting;
-                setWeaponToRestingPos(currentWeapon.GetComponent<Weapon>());
+                setWeaponToRestingPos(currentWeaponTransform.GetComponent<Weapon>());
             }
 
             if (currentWeaponIndex == 0 && input.isAiming || currentWeaponIndex == 1 && input.isAiming) //if holding gun and aiming
             {
                 currentHandState = handStates.GunEquipped_Aiming;
-                setWeaponToAimingPos(currentWeapon.GetComponent<Weapon>());
+                setWeaponToAimingPos(currentWeaponTransform.GetComponent<Weapon>());
             }
 
             if (currentWeaponIndex == 2) //If no gun is equipped

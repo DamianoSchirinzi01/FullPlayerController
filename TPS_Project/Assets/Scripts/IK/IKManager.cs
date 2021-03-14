@@ -16,6 +16,7 @@ namespace DS
         public float IK_handWeight;
         public float IK_lookWeight, IK_chestWeight, IK_headWeight, IK_eyeWeight, IK_clampedWeight;
 
+        public bool lerpHandIK;
         public bool isGunEquipped;
         public bool isLookIK_enabled = true;
 
@@ -27,6 +28,7 @@ namespace DS
         private void Update()
         {
             isGunEquipped = checkIfGunIsEquipped();
+            lerpHandIKweight();
         }
 
         public void updateCurrentIKpoints(Weapon thisWeapon)
@@ -40,18 +42,28 @@ namespace DS
             IK_handWeight = .2f;
         }
 
-        public bool checkIfGunIsEquipped()
+        public void startLerpingHandIK()
         {
-            if (thisWeaponManager.currentHandState == handStates.GunEquipped_Resting || thisWeaponManager.currentHandState == handStates.GunEquipped_Aiming)
+            lerpHandIK = true;
+        }
+        public void stopLerpingHandIK()
+        {
+            lerpHandIK = false;
+        }
+
+        private void lerpHandIKweight()
+        {
+            if (isGunEquipped)
             {
-                IK_handWeight += Time.deltaTime * IK_lerpMultiplier;
-
-                if(IK_handWeight >= .99f)
+                if (lerpHandIK)
                 {
-                    IK_handWeight = 1;
-                }
+                    IK_handWeight += Time.deltaTime * IK_lerpMultiplier;
 
-                return true;
+                    if (IK_handWeight >= .99f)
+                    {
+                        IK_handWeight = 1;
+                    }
+                }
             }
             else
             {
@@ -61,6 +73,20 @@ namespace DS
                 {
                     IK_handWeight = 0;
                 }
+            }            
+        }
+
+        public bool checkIfGunIsEquipped()
+        {
+            if (thisWeaponManager.currentHandState == handStates.GunEquipped_Resting || thisWeaponManager.currentHandState == handStates.GunEquipped_Aiming)
+            {
+                
+
+                return true;
+            }
+            else
+            {
+               
 
                 return false;
             }
