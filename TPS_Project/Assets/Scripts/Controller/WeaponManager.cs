@@ -18,6 +18,7 @@ namespace DS
         public int currentWeaponIndex;
 
         [Header("Shooting")]
+        public float nextFire;
         public LayerMask ignoreLayer;
         public Transform rayDestination;
         public bool isFiring;
@@ -44,9 +45,6 @@ namespace DS
         public void startFiring()
         {
             isFiring = true;
-
-
-            currentWeapon.emitMuzzleFlash();
             shoot();
         }
 
@@ -63,16 +61,21 @@ namespace DS
             var tracer = Instantiate(currentWeapon.bulletTracer, currentWeapon.firePoint.position, Quaternion.identity);
             tracer.AddPosition(ray.origin);
 
-
-
-            if (Physics.Raycast(ray, out hit, ignoreLayer))
+            if(Time.time > nextFire)
             {
-                currentWeapon.hitEffect.transform.position = hit.point;
-                currentWeapon.hitEffect.transform.forward = hit.normal;
-                currentWeapon.hitEffect.Emit(1);
+                nextFire = Time.time + currentWeapon.rateOfFire;
+                currentWeapon.emitMuzzleFlash();
 
-                tracer.transform.position = hit.point;
+                if (Physics.Raycast(ray, out hit, ignoreLayer))
+                {
+                    currentWeapon.hitEffect.transform.position = hit.point;
+                    currentWeapon.hitEffect.transform.forward = hit.normal;
+                    currentWeapon.hitEffect.Emit(1);
+
+                    tracer.transform.position = hit.point;
+                }
             }
+            
         }
 
         #region Weapon Switching

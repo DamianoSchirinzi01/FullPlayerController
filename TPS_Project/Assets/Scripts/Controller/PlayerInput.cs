@@ -10,6 +10,7 @@ namespace DS
         private WeaponManager thisWeaponManager;
         private AnimHook thisAnimHook;
 
+        public GameObject crosshair;
         [HideInInspector] public Vector3 rawDirection;
         [HideInInspector] public float horizontal, vertical;
         [HideInInspector] public float mouseX, mouseY;
