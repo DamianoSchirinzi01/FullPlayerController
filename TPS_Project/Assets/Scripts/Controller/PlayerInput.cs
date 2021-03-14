@@ -4,8 +4,7 @@ using UnityEngine;
 using Cinemachine;
 
 namespace DS
-{
-    public class PlayerInput : MonoBehaviour
+{    public class PlayerInput : MonoBehaviour
     {
         private PlayerController thisPlayer;
         private WeaponManager thisWeaponManager;
@@ -15,7 +14,7 @@ namespace DS
         [HideInInspector] public float horizontal, vertical;
         [HideInInspector] public float mouseX, mouseY;
 
-        public bool isAiming, isCrouching, isJumping, isSprinting, isGrounded, isSliding, isClimbing, startedToClimbLedge;
+        public bool isAiming, isCrouching, isJumping, isSprinting, isGrounded, isSliding, isFiring, isClimbing, startedToClimbLedge;
         private bool canSprint = true;
 
         public float mouseSensitivity;
@@ -63,6 +62,12 @@ namespace DS
             isJumping = Input.GetButtonDown("Jump");
             if (Input.GetKeyDown(KeyCode.C)) { toggleCrouch(); };
 
+            if(thisWeaponManager.currentHandState == handStates.GunEquipped_Aiming)
+            {
+                if (Input.GetButton("Fire1")) thisWeaponManager.startFiring();
+                else if (Input.GetButtonUp("Fire1")) thisWeaponManager.stopFiring();
+            }         
+
             rawDirection = new Vector3(horizontal, 0, vertical).normalized;
         }
 
@@ -96,6 +101,7 @@ namespace DS
             isGrounded = thisPlayer.isGrounded;
             isSliding = thisPlayer.isSliding;
             isClimbing = thisPlayer.isClimbing;
+            isFiring = thisWeaponManager.isFiring;
 
             if (thisPlayer.stopClimbing)
             {

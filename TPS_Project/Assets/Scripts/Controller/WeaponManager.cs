@@ -12,9 +12,17 @@ namespace DS
         private IKManager thisIKmanager;
 
         public List<Weapon> weaponsList;
+        private Weapon currentWeapon;
         public Transform currentWeaponTransform;
 
         public int currentWeaponIndex;
+
+        [Header("Shooting")]
+        public LayerMask ignoreLayer;
+        public Transform rayDestination;
+        public bool isFiring;
+        Ray ray;
+        RaycastHit hit;
 
         private void Awake()
         {
@@ -32,6 +40,42 @@ namespace DS
         {
             handleHandStates();
         }
+
+        public void startFiring()
+        {
+            isFiring = true;
+
+
+            currentWeapon.emitMuzzleFlash();
+            shoot();
+        }
+
+        public void stopFiring()
+        {
+            isFiring = false;
+        }
+
+        private void shoot()
+        {
+            ray.origin = currentWeapon.firePoint.position;
+            ray.direction = rayDestination.position - ray.origin;
+
+            var tracer = Instantiate(currentWeapon.bulletTracer, currentWeapon.firePoint.position, Quaternion.identity);
+            tracer.AddPosition(ray.origin);
+
+
+
+            if (Physics.Raycast(ray, out hit, ignoreLayer))
+            {
+                currentWeapon.hitEffect.transform.position = hit.point;
+                currentWeapon.hitEffect.transform.forward = hit.normal;
+                currentWeapon.hitEffect.Emit(1);
+
+                tracer.transform.position = hit.point;
+            }
+        }
+
+        #region Weapon Switching
 
         public void setCurrentWeaponIndex(int inputIndex)
         {
@@ -51,7 +95,6 @@ namespace DS
 
         private void setWeaponToHolsteredPos(Weapon thisWeapon)
         {
-
             thisWeapon.transform.position = thisWeapon.holsteredPos.position;
             thisWeapon.transform.rotation = thisWeapon.holsteredPos.rotation;
         }
@@ -67,6 +110,7 @@ namespace DS
         private void equipWeapon(Weapon thisWeapon)
         {
             currentWeaponTransform = thisWeapon.gameObject.transform;
+            currentWeapon = thisWeapon;
 
             foreach(Weapon w in weaponsList) //If w is not "thisWeapon"
             {
@@ -89,6 +133,7 @@ namespace DS
             }
 
             currentWeaponTransform = null;
+            currentWeapon = null;
         }
 
         private void handleHandStates()
@@ -96,13 +141,16 @@ namespace DS
             if(currentWeaponIndex == 0 && !input.isAiming || currentWeaponIndex == 1 && !input.isAiming) //If holding gun but not aiming
             {
                 currentHandState = handStates.GunEquipped_Resting;
-                setWeaponToRestingPos(currentWeaponTransform.GetComponent<Weapon>());
+                if (!isFiring)
+                {
+                    setWeaponToRestingPos(currentWeapon);
+                }
             }
 
             if (currentWeaponIndex == 0 && input.isAiming || currentWeaponIndex == 1 && input.isAiming) //if holding gun and aiming
             {
                 currentHandState = handStates.GunEquipped_Aiming;
-                setWeaponToAimingPos(currentWeaponTransform.GetComponent<Weapon>());
+                setWeaponToAimingPos(currentWeapon);
             }
 
             if (currentWeaponIndex == 2) //If no gun is equipped
@@ -111,6 +159,8 @@ namespace DS
             }
         }
     }
+
+    #endregion
 
     public enum handStates
     {

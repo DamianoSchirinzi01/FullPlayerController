@@ -356,11 +356,7 @@ namespace DS
                 ledgeDetected = true; //Found ledge
             }
         }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.DrawWireSphere(transform.position + moveToOffset, .5f);
-        }
+        
         #endregion
 
         #region dismounting wall   
